@@ -64,3 +64,18 @@ def test_set_weighting_with_non_float_value():
     fund = Fund("FOO", "Foo Fund", 100.0)
     with pytest.raises(TypeError):
         fund.weighting = "not a float"
+
+
+def test_add_stock_and_fund():
+    """
+    Test function to check if a stock and a fund can be added to a fund
+    """
+    fund = Fund("FOO", "Foo Fund", 100.0)
+    stock = Stock("AAPL", "Apple Inc.", 135.39)
+    fund1 = Fund("BAR", "Bar Fund", 200.0)
+    fund.add_stock(stock)
+    fund.add_fund(fund1)
+    assert len(fund.stocks) == 1
+    assert fund.stocks[0] == stock
+    assert len(fund.funds) == 1
+    assert fund.funds[0] == fund1
