@@ -12,7 +12,7 @@ class Fund:
         price (float): The price of the fund.
         holdings (list, optional): A list of Stock and Fund objects that the fund contains.
         weighting (float, optional): The weighting of the fund.
-        """
+        """  # noqa: E501
         self.symbol = symbol
         self.name = name
         self.price = price
@@ -28,7 +28,12 @@ class Fund:
         """
         if not isinstance(holding, (Stock, Fund)):
             raise TypeError("Holding must be a Stock or Fund object")
+        if not hasattr(holding, "weighting"):
+            raise AttributeError("Holding must have a weighting attribute")
+        if not isinstance(holding.weighting, float):
+            raise TypeError("Holding weighting must be a float")
         self.holdings.append(holding)
+        self.holdings.sort(key=lambda x: x.weighting, reverse=True)
 
     @property
     def price(self):
