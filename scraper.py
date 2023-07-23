@@ -11,6 +11,7 @@ class Scraper:
             symbol (str): The symbol of the fund to scrape.
         """
         self._symbol = symbol
+        self._cache = {}
 
     def _make_request(self, url):
         """
@@ -22,12 +23,16 @@ class Scraper:
         Returns:
             requests.Response: The response to the request.
         """
+        if url in self._cache:
+            return self._cache[url]
+
         headers = {
             "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
             "AppleWebKit/537.36 (KHTML, like Gecko) "
             "Chrome/58.0.3029.110 Safari/537.3"
         }
         response = requests.get(url, headers=headers)
+        self._cache[url] = response
         return response
 
     def _get_soup(self, url):
@@ -45,6 +50,20 @@ class Scraper:
         response = self._make_request(url)
         soup = BeautifulSoup(response.text, "html.parser")
         return soup
+
+    def is_fund(self):
+        """
+        Checks if the symbol is a fund.
+
+        Returns:
+            bool: True if the symbol is a fund, False otherwise.
+        """
+        url = (
+            f"https://finance.yahoo.com/quote/{self._symbol}/holdings?p={self._symbol}"
+        )
+        soup = self._get_soup(url)
+        table = soup.find("table", {"class": "W(100%) M(0) BdB Bdc($seperatorColor)"})
+        return table is not None
 
     def get_price(self):
         """
@@ -87,14 +106,15 @@ class Scraper:
             Each tuple contains the symbol, name, and weight of a holding.
             If the holdings cannot be retrieved, returns None.
         """
+        if not self.is_fund():
+            return None
+
         url = (
             f"https://finance.yahoo.com/quote/{self._symbol}/holdings?p={self._symbol}"
         )
         soup = self._get_soup(url)
 
         table = soup.find("table", {"class": "W(100%) M(0) BdB Bdc($seperatorColor)"})
-        if table is None:
-            return None
 
         rows = table.find_all("tr")[1:]  # type: ignore
 

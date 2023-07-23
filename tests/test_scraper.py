@@ -93,3 +93,20 @@ def test_get_holdings_no_table():
     scraper = Scraper("AAPL")
     holdings = scraper.get_holdings()
     assert holdings is None
+
+
+def test_is_fund_true():
+    """
+    Test that the is_fund method of the Scraper class returns True for a fund symbol.
+    """
+    scraper = Scraper("SPY")
+    assert scraper.is_fund() is True
+
+
+def test_is_fund_false():
+    """
+    Test that the is_fund method of the Scraper class returns False for
+    a non-fund symbol.
+    """
+    scraper = Scraper("AAPL")
+    assert scraper.is_fund() is False
