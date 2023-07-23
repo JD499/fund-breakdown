@@ -8,26 +8,18 @@ from fund import Fund  # noqa: E402
 from stock import Stock  # noqa: E402
 
 
-def test_add_stock():
+def test_add_holding():
     """
-    Test function to check if a stock can be added to a fund
+    Test function to check if a stock and a fund can be added to a fund
     """
     fund = Fund("FOO", "Foo Fund", 100.0)
     stock = Stock("AAPL", "Apple Inc.", 135.39)
-    fund.add_stock(stock)
-    assert len(fund.stocks) == 1
-    assert fund.stocks[0] == stock
-
-
-def test_add_fund():
-    """
-    Test function to check if a fund can be added to another fund
-    """
-    fund1 = Fund("FOO", "Foo Fund", 100.0)
-    fund2 = Fund("BAR", "Bar Fund", 200.0)
-    fund1.add_fund(fund2)
-    assert len(fund1.funds) == 1
-    assert fund1.funds[0] == fund2
+    fund1 = Fund("BAR", "Bar Fund", 200.0)
+    fund.add_holding(stock)
+    fund.add_holding(fund1)
+    assert len(fund.holdings) == 2
+    assert fund.holdings[0] == stock
+    assert fund.holdings[1] == fund1
 
 
 def test_set_price():
@@ -66,16 +58,10 @@ def test_set_weighting_with_non_float_value():
         fund.weighting = "not a float"
 
 
-def test_add_stock_and_fund():
+def test_add_holding_with_invalid_type():
     """
-    Test function to check if a stock and a fund can be added to a fund
+    Test function to check if an error is raised when adding an invalid holding type
     """
     fund = Fund("FOO", "Foo Fund", 100.0)
-    stock = Stock("AAPL", "Apple Inc.", 135.39)
-    fund1 = Fund("BAR", "Bar Fund", 200.0)
-    fund.add_stock(stock)
-    fund.add_fund(fund1)
-    assert len(fund.stocks) == 1
-    assert fund.stocks[0] == stock
-    assert len(fund.funds) == 1
-    assert fund.funds[0] == fund1
+    with pytest.raises(TypeError):
+        fund.add_holding("not a Stock or Fund object")
