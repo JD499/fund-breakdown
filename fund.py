@@ -78,3 +78,20 @@ class Fund:
         if value is not None and not isinstance(value, float):
             raise TypeError("Weighting must be a float or None")
         self._weighting = value
+
+    def holdings_table_string(self):
+        """
+        Returns a table of the fund's holdings as a string.
+
+        Args:
+            fund (self): The fund to return the holdings table for.
+
+        Returns:
+            str: A string representation of the holdings table.
+        """
+        table = ""
+        table += f"{'Holding':<20} {'Weighting':<10} {'Price':<10}\n"
+        table += "-" * 40 + "\n"
+        for holding in self.holdings:
+            table += f"{holding.name:<20} {holding.weighting:<10.2f} {holding.price:<10.2f}\n"
+        return table
