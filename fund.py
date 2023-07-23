@@ -37,18 +37,45 @@ class Fund:
         self.funds.append(fund)
 
     @property
+    def price(self):
+        """
+        Gets the current price of the stock.
+
+        Returns:
+            float: The current price of the stock.
+        """
+        return self._price
+
+    @price.setter
+    def price(self, value):
+        """
+        Sets the current price of the stock.
+
+        Args:
+            value (float): The new price of the stock.
+        """
+        if not isinstance(value, float):
+            raise TypeError("Price must be a float")
+        self._price = value
+
+    @property
     def weighting(self):
         """
-        Returns the weighting of the fund.
+        Gets the weighting of the stock in a portfolio.
+
+        Returns:
+            float: The weighting of the stock in a portfolio.
         """
         return self._weighting
 
     @weighting.setter
     def weighting(self, value):
         """
-        Sets the weighting of the fund to the given value.
+        Sets the weighting of the stock in a portfolio.
 
         Args:
-        value (float): The new weighting value.
+            value (float): The new weighting of the stock in a portfolio.
         """
+        if value is not None and not isinstance(value, float):
+            raise TypeError("Weighting must be a float or None")
         self._weighting = value

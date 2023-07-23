@@ -52,6 +52,8 @@ class Stock:
         Args:
             value (float): The new price of the stock.
         """
+        if not isinstance(value, float):
+            raise TypeError("Price must be a float")
         self._price = value
 
     @property
@@ -72,4 +74,6 @@ class Stock:
         Args:
             value (float): The new weighting of the stock in a portfolio.
         """
+        if value is not None and not isinstance(value, float):
+            raise TypeError("Weighting must be a float or None")
         self._weighting = value

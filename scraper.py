@@ -1,5 +1,6 @@
 import requests
 from bs4 import BeautifulSoup
+from utilities import remove_symbol
 
 
 class Scraper:
@@ -95,6 +96,7 @@ class Scraper:
         if name_element is None:
             raise ValueError("Unable to find name element on page")
         name = name_element.text
+        name = remove_symbol(name)
         return name
 
     def get_holdings(self):
@@ -129,6 +131,7 @@ class Scraper:
             elif symbol == "BRK.A":
                 symbol = "BRK-A"
             weight = float(weight[:-1])
+            holding_name = remove_symbol(holding_name)
             holdings_info.append((symbol, holding_name, weight))
 
         if len(holdings_info) == 0:
