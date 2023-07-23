@@ -1,4 +1,6 @@
 import requests
+from fund import Fund
+from stock import Stock
 from bs4 import BeautifulSoup
 from utilities import remove_symbol
 
@@ -101,12 +103,11 @@ class Scraper:
 
     def get_holdings(self):
         """
-        Retrieves the holdings of the fund.
+        Retrieves the holdings of a fund.
 
         Returns:
-            list of tuples: A list of tuples representing the holdings of the fund.
-            Each tuple contains the symbol, name, and weight of a holding.
-            If the holdings cannot be retrieved, returns None.
+            list: A list of Fund or Stock objects representing the holdings of the fund.
+                  Returns None if the symbol is not a fund or if no holdings are found.
         """
         if not self.is_fund():
             return None
@@ -120,7 +121,7 @@ class Scraper:
 
         rows = table.find_all("tr")[1:]  # type: ignore
 
-        holdings_info = []
+        holdings = []
         for row in rows:
             cols = row.find_all("td")
             cols = [col.text.strip() for col in cols]
@@ -132,9 +133,21 @@ class Scraper:
                 symbol = "BRK-A"
             weight = float(weight[:-1])
             holding_name = remove_symbol(holding_name)
-            holdings_info.append((symbol, holding_name, weight))
 
-        if len(holdings_info) == 0:
+            # check if holding is stock or fund
+            holding_scraper = Scraper(symbol)
+            if holding_scraper.is_fund():
+                holding = Fund(
+                    symbol, holding_name, holding_scraper.get_price(), weighting=weight
+                )
+
+            else:
+                holding = Stock(
+                    symbol, holding_name, holding_scraper.get_price(), weight
+                )
+            holdings.append(holding)
+
+        if len(holdings) == 0:
             return None
         else:
-            return holdings_info
+            return holdings

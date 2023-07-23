@@ -1,5 +1,7 @@
 import sys
 import os
+from fund import Fund
+from stock import Stock
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
@@ -56,22 +58,17 @@ def test_get_invalid_name():
 
 def test_get_holdings():
     """
-    Test that the get_holdings method of the Scraper class returns a list of tuples,
-    where each tuple contains
-    a stock symbol, a company name, and a float greater than 0.0 representing the
-    percentage of holdings for that stock.
+    Test that the get_holdings method of the Scraper class returns a list of Fund or Stock objects
+    representing the holdings of a fund.
     """
     scraper = Scraper("SPY")
     holdings = scraper.get_holdings()
     assert isinstance(holdings, list)
-    assert len(holdings) > 0
-    for holding in holdings:
-        assert isinstance(holding, tuple)
-        assert len(holding) == 3
-        assert isinstance(holding[0], str)
-        assert isinstance(holding[1], str)
-        assert isinstance(holding[2], float)
-        assert holding[2] > 0.0
+    assert all(isinstance(holding, (Fund, Stock)) for holding in holdings)
+    assert all(holding.symbol is not None for holding in holdings)
+    assert all(holding.name is not None for holding in holdings)
+    assert all(holding.price is not None for holding in holdings)
+    assert all(holding.weighting is not None for holding in holdings)
 
 
 def test_get_holdings_invalid():
