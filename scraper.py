@@ -143,7 +143,7 @@ class Scraper:
 
             else:
                 holding = Stock(
-                    symbol, holding_name, holding_scraper.get_price(), weight
+                    symbol, holding_name, holding_scraper.get_price(), weighting=weight
                 )
             holdings.append(holding)
 

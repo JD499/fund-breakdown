@@ -2,7 +2,7 @@ from stock import Stock
 
 
 class Fund:
-    def __init__(self, symbol, name, price, holdings=None, weighting=None):
+    def __init__(self, symbol, name, price, shares=None, holdings=None, weighting=None):
         """
         Initializes a Fund object with the given parameters.
 
@@ -16,6 +16,7 @@ class Fund:
         self.symbol = symbol
         self.name = name
         self.price = price
+        self.shares = shares or 0
         self.holdings = holdings or []
         self._weighting = weighting
 

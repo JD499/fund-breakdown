@@ -13,9 +13,9 @@ def test_add_holdings():
     Test function to check if holdings can be added to a fund
     """
     fund1 = Fund("FOO", "Foo Fund", 100.0)
-    stock1 = Stock("AAPL", "Apple Inc.", 150.0, 0.01)
-    stock2 = Stock("GOOG", "Alphabet Inc.", 200.0, 0.8)
-    fund2 = Fund("Bar", "Bar Fund", 100.0, None, 0.19)
+    stock1 = Stock("AAPL", "Apple Inc.", 150.0, weighting= 0.01)
+    stock2 = Stock("GOOG", "Alphabet Inc.", 200.0, weighting=0.8)
+    fund2 = Fund("Bar", "Bar Fund", 100.0, None, weighting=0.19)
     fund1.add_holding(stock1)
     fund1.add_holding(stock2)
     fund1.add_holding(fund2)

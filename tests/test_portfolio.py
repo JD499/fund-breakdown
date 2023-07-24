@@ -14,9 +14,9 @@ def test_add_holdings():
     Test function to check if holdings can be added to a fund
     """
     portfolio = Portfolio()
-    stock1 = Stock("AAPL", "Apple Inc.", 150.0, 0.01)
-    stock2 = Stock("GOOG", "Alphabet Inc.", 200.0, 0.8)
-    fund1 = Fund("Bar", "Bar Fund", 100.0, None, 0.19)
+    stock1 = Stock("AAPL", "Apple Inc.", 150.0, 100)
+    stock2 = Stock("GOOG", "Alphabet Inc.", 200.0, 200)
+    fund1 = Fund("SPY", "SPDR S&P 500 ETF Trust", 100.0, 300)
     portfolio.add_holding(stock1)
     portfolio.add_holding(stock2)
     portfolio.add_holding(fund1)
@@ -24,22 +24,14 @@ def test_add_holdings():
     assert portfolio.holdings[1] == fund1
     assert portfolio.holdings[2] == stock1
 
-    def test_add_holding_with_invalid_type():
-        """
-        Test function to check if an error is raised when adding an invalid holding type
-        """
-        portfolio = Portfolio()
-        with pytest.raises(TypeError):
-            portfolio.add_holding("not a Stock or Fund object")
 
-
-def test_add_holding_with_invalid_weighting():
+def test_add_holding_with_invalid_type():
     """
-    Test function to check if an error is raised when adding a holding without a weighting
+    Test function to check if an error is raised when adding an invalid holding type
     """
     portfolio = Portfolio()
     with pytest.raises(TypeError):
-        portfolio.add_holding(Stock("AAPL", "Apple Inc.", 150.0))
+        portfolio.add_holding("not a Stock or Fund object")
 
 
 def holdings_table_string():
@@ -62,3 +54,23 @@ def holdings_table_string():
 
     captured_output = portfolio.holdings_table_string()
     assert captured_output == expected_output
+
+
+def test_calculate_portfolio_value():
+    """
+    Test function to check if the total value of a portfolio is calculated correctly
+    """
+    portfolio = Portfolio()
+    stock1 = Stock("AAPL", "Apple Inc.", 150.0, shares=10)
+    stock2 = Stock("AMZN", "Amazon.com, Inc.", 1000.0, shares=5)
+    stock3 = Stock("GOOG", "Alphabet Inc.", 1030.0, shares=2)
+    fund1 = Fund("FOO", "Foo Fund", 100.0, shares=20)
+    fund2 = Fund("BAR", "Bar Fund", 200.0, shares=15)
+    portfolio.add_holding(stock1)
+    portfolio.add_holding(stock2)
+    portfolio.add_holding(stock3)
+    portfolio.add_holding(fund1)
+    portfolio.add_holding(fund2)
+
+    expected_output = 10 * 150.0 + 5 * 1000.0 + 2 * 1030.0 + 20 * 100.0 + 15 * 200.0
+    assert portfolio.calculate_portfolio_value() == expected_output

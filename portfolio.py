@@ -13,6 +13,7 @@ class Portfolio:
 
     def __init__(self, holdings=None):
         self.holdings = holdings or []
+        self.value = 0
 
     def add_holding(self, holding):
         """
@@ -23,11 +24,8 @@ class Portfolio:
         """
         if not isinstance(holding, (Stock, Fund)):
             raise TypeError("Holding must be a Stock or Fund object")
-        if not hasattr(holding, "weighting"):
-            raise AttributeError("Holding must have a weighting attribute")
-        if not isinstance(holding.weighting, float):
-            raise TypeError("Holding weighting must be a float")
         self.holdings.append(holding)
+        self.calculate_portfolio_weightings()
         self.holdings.sort(key=lambda x: x.weighting, reverse=True)
 
     def remove_holding(self, holding):
@@ -40,6 +38,7 @@ class Portfolio:
         if not isinstance(holding, (Stock, Fund)):
             raise TypeError("Holding must be a Stock or Fund object")
         self.holdings.remove(holding)
+        self.calculate_portfolio_weightings()
         self.holdings.sort(key=lambda x: x.weighting, reverse=True)
 
     def holdings_table_string(self):
@@ -58,3 +57,27 @@ class Portfolio:
         for holding in self.holdings:
             table += f"{holding.name:<20} {holding.weighting:<10.2f} {holding.price:<10.2f}\n"
         return table
+    
+    def calculate_portfolio_value(self):
+        """
+        Calculates the total value of a portfolio.
+
+
+        Returns:
+            float: The total value of the portfolio.
+        """
+        total_value = 0.0
+        for holding in self.holdings:
+            total_value += holding.price * holding.shares
+        return total_value
+    
+    def calculate_portfolio_weightings(self):
+        """
+        Calculates the weightings of each holding in the portfolio.
+
+        Returns:
+            float: The weightings of each holding in the portfolio.
+        """
+        total_value = self.calculate_portfolio_value()
+        for holding in self.holdings:
+            holding.weighting = (holding.price * holding.shares) / total_value

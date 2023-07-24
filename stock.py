@@ -1,5 +1,5 @@
 class Stock:
-    def __init__(self, symbol, name, price, weighting=None):
+    def __init__(self, symbol, name, price, shares=None, weighting=None):
         """
         Initializes a new instance of the Stock class.
 
@@ -12,6 +12,7 @@ class Stock:
         self._symbol = symbol
         self._name = name
         self._price = price
+        self.shares = shares or 0
         self._weighting = weighting
 
     @property
