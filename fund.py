@@ -2,83 +2,93 @@ from stock import Stock
 
 
 class Fund:
-    def __init__(self, symbol, name, price, shares=None, holdings=None, weighting=None):
-        """
-        Initializes a Fund object with the given parameters.
+    def __init__(self, symbol):
+        self._symbol = symbol
+        self._name = ""
+        self._price = 0
+        self._shares = 0
+        self._weighting = 0
+        self._holdings = []
+        self._value = None
 
-        Args:
-        symbol (str): The symbol of the fund.
-        name (str): The name of the fund.
-        price (float): The price of the fund.
-        holdings (list, optional): A list of Stock and Fund objects that the fund contains.
-        weighting (float, optional): The weighting of the fund.
-        """  # noqa: E501
-        self.symbol = symbol
-        self.name = name
-        self.price = price
-        self.shares = shares or 0
-        self.holdings = holdings or []
-        self._weighting = weighting
+    @property
+    def symbol(self):
+        return self._symbol
 
-    def add_holding(self, holding):
-        """
-        Adds a Stock or Fund object to the list of holdings that the fund contains.
+    @symbol.setter
+    def symbol(self, value):
+        self._symbol = value
 
-        Args:
-        holding (Stock or Fund): The Stock or Fund object to add.
-        """
-        if not isinstance(holding, (Stock, Fund)):
-            raise TypeError("Holding must be a Stock or Fund object")
-        if not hasattr(holding, "weighting"):
-            raise AttributeError("Holding must have a weighting attribute")
-        if not isinstance(holding.weighting, float):
-            raise TypeError("Holding weighting must be a float")
-        self.holdings.append(holding)
-        self.holdings.sort(key=lambda x: x.weighting, reverse=True)
+    @property
+    def name(self):
+        return self._name
+
+    @name.setter
+    def name(self, value):
+        self._name = value
 
     @property
     def price(self):
-        """
-        Gets the current price of the stock.
-
-        Returns:
-            float: The current price of the stock.
-        """
         return self._price
 
     @price.setter
     def price(self, value):
-        """
-        Sets the current price of the stock.
-
-        Args:
-            value (float): The new price of the stock.
-        """
-        if not isinstance(value, float):
-            raise TypeError("Price must be a float")
         self._price = value
 
     @property
-    def weighting(self):
-        """
-        Gets the weighting of the stock in a portfolio.
+    def shares(self):
+        return self._shares
 
-        Returns:
-            float: The weighting of the stock in a portfolio.
-        """
+    @shares.setter
+    def shares(self, value):
+        self._shares = value
+
+    @property
+    def weighting(self):
         return self._weighting
 
     @weighting.setter
     def weighting(self, value):
-        """
-        Sets the weighting of the stock in a portfolio.
-
-        Args:
-            value (float): The new weighting of the stock in a portfolio.
-        """
-        if value is not None and not isinstance(value, float):
-            raise TypeError("Weighting must be a float or None")
         self._weighting = value
+
+    @property
+    def value(self):
+        if self._value is not None:  # If value has been manually set, return that
+            return self._value
+        else:  # If not, return price * shares
+            return self._price * self._shares
+
+    @value.setter
+    def value(self, value):
+        self._value = value
+
+    @property
+    def holdings(self):
+        return self._holdings
+
+    @holdings.setter
+    def holdings(self, value):
+        if all(isinstance(i, (Stock, Fund)) for i in value):
+            self._holdings = value
+            self.set_holdings_values()
+        else:
+            raise ValueError("Holdings should be a list of Stock or Fund objects")
+
+    def add_holding(self, holding):
+        if isinstance(holding, (Stock, Fund)):
+            self._holdings.append(holding)
+            self.set_holdings_values()
+        else:
+            raise ValueError("Holding should be an instance of Stock or Fund")
+
+    # approximate the value of each holding by dividing fund value by holding weight
+    def set_holdings_values(self):
+        """
+        Sets the value of each holding in the fund.
+        """
+        total_value = self.value
+        for holding in self.holdings:
+            holding.value = total_value * holding.weighting
 
     def holdings_table_string(self):
         """
@@ -91,8 +101,8 @@ class Fund:
             str: A string representation of the holdings table.
         """
         table = ""
-        table += f"{'Holding':<20} {'Weighting':<10} {'Price':<10}\n"
-        table += "-" * 40 + "\n"
+        table += f"{'Holding':<20} {'Weighting':<10} {'Price':<10} {'Value':<10}\n"
+        table += "-" * 50 + "\n"
         for holding in self.holdings:
-            table += f"{holding.name:<20} {holding.weighting:<10.2f} {holding.price:<10.2f}\n"
+            table += f"{holding.name:<20} {holding.weighting:<10.2f} {holding.price:<10.2f} {holding.value:<10.2f}\n"  # noqa: E501
         return table

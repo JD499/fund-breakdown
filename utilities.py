@@ -9,7 +9,7 @@ def remove_symbol(string):
         string (str): The string to remove text from.
 
     Returns:
-        str: The modified string with text within parentheses and leading/trailing 
+        str: The modified string with text within parentheses and leading/trailing
         whitespace removed.
     """
     return re.sub(r"\([^()]*\)", "", string).strip()

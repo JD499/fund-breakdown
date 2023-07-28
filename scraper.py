@@ -4,28 +4,82 @@ from stock import Stock
 from bs4 import BeautifulSoup
 from utilities import remove_symbol
 
+BASE_URL = "https://finance.yahoo.com/quote/"
+
+SYMBOL_CORRECTIONS = {
+    "BRK.B": "BRK-B",
+    "BRK.A": "BRK-A",
+    "NESN": "NESN.SW",
+    "00700": "0700.HK",
+    "00939": "0939.HK",
+    "RIGD": "RELIANCE.NS",
+    "000660": "000660.KS",
+    "02318": "2318.HK",
+    "2317": "2317.TW",
+    "LT": "LT.NS",
+    "005380": "005380.KS",
+    "000270": "000270.KS",
+    "2303": "2303.TW",
+    "IVG": "IVG.MI",
+    "SQN": "SQN.SW",
+    "02343": "2343.HK",
+    "CMBN": "CMBN.SW",
+    "ILU": "ILU.AX",
+    "5406": "5406.T",
+    "LOOMIS": "LOOMIS.ST",
+}
+
 
 class Scraper:
     def __init__(self, symbol):
-        """
-        Initializes a new instance of the Scraper class with the specified symbol.
-
-        Args:
-            symbol (str): The symbol of the fund to scrape.
-        """
-        self._symbol = symbol
+        self._symbol = SYMBOL_CORRECTIONS.get(symbol, symbol)
         self._cache = {}
+        self._is_fund = None
+
+    def _get_url(self, endpoint=""):
+        return f"{BASE_URL}{self._symbol}{endpoint}"
+
+    def build_fund(self):
+        if not self.is_fund():
+            raise ValueError("Symbol is not a fund")
+
+        fund = Fund(self._symbol)
+        fund._name = self.get_name()
+        fund._price = self.get_price()
+        fund._holdings = self.get_holdings()
+        return fund
+
+    def build_fund_holding(self, weight):
+        if not self.is_fund():
+            raise ValueError("Symbol is not a fund")
+
+        fund = Fund(self._symbol)
+        fund._name = self.get_name()
+        fund._price = self.get_price()
+        fund._holdings = self.get_holdings()
+        fund._weighting = weight
+        return fund
+
+    def build_stock(self):
+        if self.is_fund():
+            raise ValueError("Symbol is not a stock")
+
+        stock = Stock(self._symbol)
+        stock._name = self.get_name()
+        stock._price = self.get_price()
+        return stock
+
+    def build_stock_holding(self, weight):
+        if self.is_fund():
+            raise ValueError("Symbol is not a stock")
+
+        stock = Stock(self._symbol)
+        stock._name = self.get_name()
+        stock._price = self.get_price()
+        stock._weighting = weight
+        return stock
 
     def _make_request(self, url):
-        """
-        Sends an HTTP GET request to the specified URL and returns the response.
-
-        Args:
-            url (str): The URL to send the request to.
-
-        Returns:
-            requests.Response: The response to the request.
-        """
         if url in self._cache:
             return self._cache[url]
 
@@ -39,43 +93,19 @@ class Scraper:
         return response
 
     def _get_soup(self, url):
-        """
-        Sends an HTTP GET request to the specified URL, retrieves the HTML content, and
-        returns a BeautifulSoup object.
-
-        Args:
-            url (str): The URL to retrieve the HTML content from.
-
-        Returns:
-            bs4.BeautifulSoup: A BeautifulSoup object representing the HTML content
-            of the page.
-        """
         response = self._make_request(url)
         soup = BeautifulSoup(response.text, "html.parser")
         return soup
 
     def is_fund(self):
-        """
-        Checks if the symbol is a fund.
-
-        Returns:
-            bool: True if the symbol is a fund, False otherwise.
-        """
-        url = (
-            f"https://finance.yahoo.com/quote/{self._symbol}/holdings?p={self._symbol}"
-        )
+        url = self._get_url("/holdings?p=" + self._symbol)
         soup = self._get_soup(url)
         table = soup.find("table", {"class": "W(100%) M(0) BdB Bdc($seperatorColor)"})
-        return table is not None
+        self._is_fund = table is not None
+        return self._is_fund
 
     def get_price(self):
-        """
-        Retrieves the current price of the stock or fund.
-
-        Returns:
-            float: The current price of the stock or fund.
-        """
-        url = f"https://finance.yahoo.com/quote/{self._symbol}"
+        url = self._get_url()
         soup = self._get_soup(url)
         price_element = soup.find(
             "fin-streamer", {"class": "Fw(b) Fz(36px) Mb(-4px) D(ib)"}
@@ -86,35 +116,24 @@ class Scraper:
         return float(price)  # type: ignore
 
     def get_name(self):
-        """
-        Retrieves the name of the stock or fund.
-
-        Returns:
-            str: The name of the stock or fund.
-        """
-        url = f"https://finance.yahoo.com/quote/{self._symbol}"
+        url = self._get_url()
         soup = self._get_soup(url)
         name_element = soup.find("h1", {"class": "D(ib) Fz(18px)"})
         if name_element is None:
-            raise ValueError("Unable to find name element on page")
+            new_symbol = input(
+                f"Unable to find name element on page for {self._symbol}. Please enter a new symbol: "  # noqa: E501
+            )
+            self._symbol = new_symbol
+            return self.get_name()
         name = name_element.text
         name = remove_symbol(name)
         return name
 
     def get_holdings(self):
-        """
-        Retrieves the holdings of a fund.
-
-        Returns:
-            list: A list of Fund or Stock objects representing the holdings of the fund.
-                  Returns None if the symbol is not a fund or if no holdings are found.
-        """
         if not self.is_fund():
             return None
 
-        url = (
-            f"https://finance.yahoo.com/quote/{self._symbol}/holdings?p={self._symbol}"
-        )
+        url = self._get_url("/holdings?p=" + self._symbol)
         soup = self._get_soup(url)
 
         table = soup.find("table", {"class": "W(100%) M(0) BdB Bdc($seperatorColor)"})
@@ -127,24 +146,19 @@ class Scraper:
             cols = [col.text.strip() for col in cols]
             holding_name, symbol, weight = cols[0], cols[1], cols[2]
 
-            if symbol == "BRK.B":
-                symbol = "BRK-B"
-            elif symbol == "BRK.A":
-                symbol = "BRK-A"
-            weight = float(weight[:-1])
+            symbol = SYMBOL_CORRECTIONS.get(symbol, symbol)
+
+            weight = float(weight[:-1]) / 100
             holding_name = remove_symbol(holding_name)
 
             # check if holding is stock or fund
             holding_scraper = Scraper(symbol)
             if holding_scraper.is_fund():
-                holding = Fund(
-                    symbol, holding_name, holding_scraper.get_price(), weighting=weight
-                )
+                # build fund object using function
+                holding = holding_scraper.build_fund_holding(weight)
 
             else:
-                holding = Stock(
-                    symbol, holding_name, holding_scraper.get_price(), weighting=weight
-                )
+                holding = holding_scraper.build_stock_holding(weight)
             holdings.append(holding)
 
         if len(holdings) == 0:

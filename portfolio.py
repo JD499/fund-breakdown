@@ -3,43 +3,38 @@ from fund import Fund
 
 
 class Portfolio:
-    """
-    A class representing a portfolio of stocks and funds.
-
-    Attributes:
-    - stocks (list): A list of Stock objects representing the stocks in the portfolio.
-    - funds (list): A list of Fund objects representing the funds in the portfolio.
-    """
-
     def __init__(self, holdings=None):
-        self.holdings = holdings or []
-        self.value = 0
+        self._holdings = holdings or []
+
+    @property
+    def holdings(self):
+        return self._holdings
+
+    @holdings.setter
+    def holdings(self, value):
+        if all(isinstance(i, (Stock, Fund)) for i in value):
+            self._holdings = value
+        else:
+            raise ValueError("Holdings should be a list of Stock or Fund objects")
+
+    @property
+    def value(self):
+        return sum(holding.value for holding in self._holdings)
 
     def add_holding(self, holding):
-        """
-        Adds a Stock or Fund object to the list of holdings that the fund contains.
+        if isinstance(holding, (Stock, Fund)):
+            self._holdings.append(holding)
+            self.set_holdings_weights()
+        else:
+            raise ValueError("Holding should be an instance of Stock or Fund")
 
-        Args:
-        holding (Stock or Fund): The Stock or Fund object to add.
+    def set_holdings_weights(self):
         """
-        if not isinstance(holding, (Stock, Fund)):
-            raise TypeError("Holding must be a Stock or Fund object")
-        self.holdings.append(holding)
-        self.calculate_portfolio_weightings()
-        self.holdings.sort(key=lambda x: x.weighting, reverse=True)
-
-    def remove_holding(self, holding):
+        Sets the weighting of each holding in the portfolio.
         """
-        Removes a Stock or Fund object from the list of holdings that the fund contains.
-
-        Args:
-        holding (Stock or Fund): The Stock or Fund object to remove.
-        """
-        if not isinstance(holding, (Stock, Fund)):
-            raise TypeError("Holding must be a Stock or Fund object")
-        self.holdings.remove(holding)
-        self.calculate_portfolio_weightings()
-        self.holdings.sort(key=lambda x: x.weighting, reverse=True)
+        total_value = sum(holding.value for holding in self.holdings)
+        for holding in self.holdings:
+            holding.weighting = holding.value / total_value
 
     def holdings_table_string(self):
         """
@@ -52,32 +47,8 @@ class Portfolio:
             str: A string representation of the holdings table.
         """
         table = ""
-        table += f"{'Holding':<20} {'Weighting':<10} {'Price':<10}\n"
-        table += "-" * 40 + "\n"
+        table += f"{'Holding':<20} {'Weighting':<10} {'Price':<10} {'Value':<10}\n"
+        table += "-" * 50 + "\n"
         for holding in self.holdings:
-            table += f"{holding.name:<20} {holding.weighting:<10.2f} {holding.price:<10.2f}\n"
+            table += f"{holding.name:<20} {holding.weighting:<10.2f} {holding.price:<10.2f} {holding.value:<10.2f}\n"  # noqa: E501
         return table
-    
-    def calculate_portfolio_value(self):
-        """
-        Calculates the total value of a portfolio.
-
-
-        Returns:
-            float: The total value of the portfolio.
-        """
-        total_value = 0.0
-        for holding in self.holdings:
-            total_value += holding.price * holding.shares
-        return total_value
-    
-    def calculate_portfolio_weightings(self):
-        """
-        Calculates the weightings of each holding in the portfolio.
-
-        Returns:
-            float: The weightings of each holding in the portfolio.
-        """
-        total_value = self.calculate_portfolio_value()
-        for holding in self.holdings:
-            holding.weighting = (holding.price * holding.shares) / total_value
