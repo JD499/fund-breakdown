@@ -23,10 +23,17 @@ class Portfolio:
 
     def add_holding(self, holding):
         if isinstance(holding, (Stock, Fund)):
-            self._holdings.append(holding)
-            self.set_holdings_weights()
+            for existing_holding in self._holdings:
+                if existing_holding.symbol == holding.symbol:
+                    existing_holding.value += holding.value
+                    self.set_holdings_weights()
+                    break
+            else:
+                self._holdings.append(holding)
+                self.set_holdings_weights()
         else:
             raise ValueError("Holding should be an instance of Stock or Fund")
+
 
     def set_holdings_weights(self):
         """
