@@ -5,7 +5,7 @@ class Stock:
         self._price = 0
         self._shares = 0
         self._weighting = 0
-        self._value = 0
+        self._value = None
 
     @property
     def symbol(self):
@@ -49,7 +49,10 @@ class Stock:
 
     @property
     def value(self):
-        return self._value
+        if self._value is not None:  # If value has been manually set, return that
+            return self._value
+        else:  # If not, return price * shares
+            return self._price * self._shares
 
     @value.setter
     def value(self, value):

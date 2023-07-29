@@ -1,6 +1,4 @@
 import requests
-from fund import Fund
-from stock import Stock
 from bs4 import BeautifulSoup
 from utilities import remove_symbol
 
@@ -29,7 +27,6 @@ SYMBOL_CORRECTIONS = {
     "LOOMIS": "LOOMIS.ST",
 }
 
-
 class Scraper:
     def __init__(self, symbol):
         self._symbol = SYMBOL_CORRECTIONS.get(symbol, symbol)
@@ -38,46 +35,6 @@ class Scraper:
 
     def _get_url(self, endpoint=""):
         return f"{BASE_URL}{self._symbol}{endpoint}"
-
-    def build_fund(self):
-        if not self.is_fund():
-            raise ValueError("Symbol is not a fund")
-
-        fund = Fund(self._symbol)
-        fund._name = self.get_name()
-        fund._price = self.get_price()
-        fund._holdings = self.get_holdings()
-        return fund
-
-    def build_fund_holding(self, weight):
-        if not self.is_fund():
-            raise ValueError("Symbol is not a fund")
-
-        fund = Fund(self._symbol)
-        fund._name = self.get_name()
-        fund._price = self.get_price()
-        fund._holdings = self.get_holdings()
-        fund._weighting = weight
-        return fund
-
-    def build_stock(self):
-        if self.is_fund():
-            raise ValueError("Symbol is not a stock")
-
-        stock = Stock(self._symbol)
-        stock._name = self.get_name()
-        stock._price = self.get_price()
-        return stock
-
-    def build_stock_holding(self, weight):
-        if self.is_fund():
-            raise ValueError("Symbol is not a stock")
-
-        stock = Stock(self._symbol)
-        stock._name = self.get_name()
-        stock._price = self.get_price()
-        stock._weighting = weight
-        return stock
 
     def _make_request(self, url):
         if url in self._cache:
@@ -151,17 +108,19 @@ class Scraper:
             weight = float(weight[:-1]) / 100
             holding_name = remove_symbol(holding_name)
 
-            # check if holding is stock or fund
-            holding_scraper = Scraper(symbol)
-            if holding_scraper.is_fund():
-                # build fund object using function
-                holding = holding_scraper.build_fund_holding(weight)
-
-            else:
-                holding = holding_scraper.build_stock_holding(weight)
-            holdings.append(holding)
+            holdings.append((holding_name, symbol, weight))
 
         if len(holdings) == 0:
             return None
         else:
             return holdings
+
+    def get_data(self):
+        data = {
+            "symbol": self._symbol,
+            "name": self.get_name(),
+            "price": self.get_price(),
+            "holdings": self.get_holdings() if self.is_fund() else None,
+            "is_fund": self.is_fund()
+        }
+        return data
