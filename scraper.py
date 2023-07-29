@@ -1,53 +1,19 @@
-import requests
 from bs4 import BeautifulSoup
 from utilities import remove_symbol
+from constants import BASE_URL, SYMBOL_CORRECTIONS
 
-BASE_URL = "https://finance.yahoo.com/quote/"
-
-SYMBOL_CORRECTIONS = {
-    "BRK.B": "BRK-B",
-    "BRK.A": "BRK-A",
-    "NESN": "NESN.SW",
-    "00700": "0700.HK",
-    "00939": "0939.HK",
-    "RIGD": "RELIANCE.NS",
-    "000660": "000660.KS",
-    "02318": "2318.HK",
-    "2317": "2317.TW",
-    "LT": "LT.NS",
-    "005380": "005380.KS",
-    "000270": "000270.KS",
-    "2303": "2303.TW",
-    "IVG": "IVG.MI",
-    "SQN": "SQN.SW",
-    "02343": "2343.HK",
-    "CMBN": "CMBN.SW",
-    "ILU": "ILU.AX",
-    "5406": "5406.T",
-    "LOOMIS": "LOOMIS.ST",
-}
 
 class Scraper:
-    def __init__(self, symbol):
+    def __init__(self, symbol, request_cache):
         self._symbol = SYMBOL_CORRECTIONS.get(symbol, symbol)
-        self._cache = {}
+        self._request_cache = request_cache
         self._is_fund = None
 
     def _get_url(self, endpoint=""):
         return f"{BASE_URL}{self._symbol}{endpoint}"
 
     def _make_request(self, url):
-        if url in self._cache:
-            return self._cache[url]
-
-        headers = {
-            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
-            "AppleWebKit/537.36 (KHTML, like Gecko) "
-            "Chrome/58.0.3029.110 Safari/537.3"
-        }
-        response = requests.get(url, headers=headers)
-        self._cache[url] = response
-        return response
+        return self._request_cache.get(url)
 
     def _get_soup(self, url):
         response = self._make_request(url)
@@ -121,6 +87,6 @@ class Scraper:
             "name": self.get_name(),
             "price": self.get_price(),
             "holdings": self.get_holdings() if self.is_fund() else None,
-            "is_fund": self.is_fund()
+            "is_fund": self.is_fund(),
         }
         return data
