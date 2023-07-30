@@ -34,7 +34,6 @@ class Portfolio:
         else:
             raise ValueError("Holding should be an instance of Stock or Fund")
 
-
     def set_holdings_weights(self):
         """
         Sets the weighting of each holding in the portfolio.
@@ -42,6 +41,9 @@ class Portfolio:
         total_value = sum(holding.value for holding in self.holdings)
         for holding in self.holdings:
             holding.weighting = holding.value / total_value
+
+    def sort_by_weight(self):
+        self._holdings.sort(key=lambda holding: holding.weighting, reverse=True)
 
     def holdings_table_string(self):
         """
@@ -53,6 +55,7 @@ class Portfolio:
         Returns:
             str: A string representation of the holdings table.
         """
+        self.sort_by_weight()
         table = ""
         table += f"{'Holding':<20} {'Weighting':<10} {'Price':<10} {'Value':<10}\n"
         table += "-" * 50 + "\n"

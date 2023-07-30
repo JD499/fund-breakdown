@@ -9,7 +9,7 @@ class Fund:
         self._shares = 0
         self._weighting = 0
         self._holdings = []
-        self._value = None
+        self._value = 0
 
     @property
     def symbol(self):
@@ -53,7 +53,7 @@ class Fund:
 
     @property
     def value(self):
-        if self._value is not None:  # If value has been manually set, return that
+        if self._value != 0:  # If value has been manually set, return that
             return self._value
         else:  # If not, return price * shares
             return self._price * self._shares
