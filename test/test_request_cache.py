@@ -3,22 +3,25 @@ import os
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-import pytest
+
+from unittest.mock import patch
 from request_cache import RequestCache
 
 # Test for RequestCache class
 
 
-def test_request_cache_init():
-    request_cache = RequestCache()
-    assert request_cache._cache == {}
+def test_request_cache():
+    with patch("requests.get") as mocked_get:
+        mocked_get.return_value = "Mocked response"
+        cache = RequestCache()
 
+        # Call the get method twice with the same URL
+        response1 = cache.get("http://example.com")
+        response2 = cache.get("http://example.com")
 
-# Note: The following test is commented out because it makes a real HTTP request.
-# Uncomment it to run the test, but be aware that it may fail if there are network issues.
+        # Check that the requests.get method was called only once
+        assert mocked_get.call_count == 1
 
-
-def test_request_cache_get():
-    request_cache = RequestCache()
-    response = request_cache.get("https://www.google.com")
-    assert response.status_code == 200
+        # Check that the responses are equal to the mocked response
+        assert response1 == "Mocked response"
+        assert response2 == "Mocked response"
