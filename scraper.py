@@ -1,6 +1,7 @@
 from bs4 import BeautifulSoup
 from utilities import remove_symbol
 from constants import BASE_URL, SYMBOL_CORRECTIONS
+from concurrent.futures import ThreadPoolExecutor
 
 
 class Scraper:
@@ -90,3 +91,11 @@ class Scraper:
             "is_fund": self.is_fund(),
         }
         return data
+
+    def get_data_for_symbol(self, symbol):
+        scraper = Scraper(symbol, self._request_cache)
+        return scraper.get_data()
+
+    def get_multiple_data(self, symbols):
+        with ThreadPoolExecutor() as executor:
+            return list(executor.map(self.get_data_for_symbol, symbols))
