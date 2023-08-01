@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Portfolio</title>
+</head>
+<body>
+    <form method="POST">
+        <label for="symbols">Enter symbols (comma separated):</label><br>
+        <input type="text" id="symbols" name="symbols"><br>
+        <label for="shares">Enter shares (comma separated):</label><br>
+        <input type="text" id="shares" name="shares"><br>
+        <input type="submit" value="Submit">
+    </form>
+    
+    {% if holdings %}
+        <pre>{{ holdings }}</pre>
+    {% endif %}
+</body>
+</html>
