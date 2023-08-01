@@ -6,8 +6,13 @@ from fund_factory import FundFactory
 from stock_factory import StockFactory
 from fund import Fund
 from concurrent.futures import ThreadPoolExecutor
+from flask_cors import CORS
+from flask import jsonify
+
 
 app = Flask(__name__)
+CORS(app)  # This will enable CORS for all routes
+
 
 @app.route('/', methods=['GET', 'POST'])
 def index():
@@ -32,8 +37,8 @@ def index():
                 stock.shares = share
                 portfolio.add_holding(stock)
 
-        holdings = portfolio.holdings_table_string()
-        return render_template('index.html', holdings=holdings)
+        holdings = portfolio.holdings_table()
+        return jsonify(holdings=holdings)
 
     return render_template('index.html')
 

@@ -62,3 +62,15 @@ class Portfolio:
         for holding in self.holdings:
             table += f"{holding.name:<20} {holding.weighting:<10.2f} {holding.price:<10.2f} {holding.value:<10.2f}\n"  # noqa: E501
         return table
+    
+    def holdings_table(self):
+        self.sort_by_weight()
+        holdings = []
+        for holding in self.holdings:
+            holdings.append({
+                'name': holding.name,
+                'weighting': holding.weighting,
+                'price': holding.price,
+                'value': holding.value
+            })
+        return holdings
