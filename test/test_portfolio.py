@@ -3,7 +3,6 @@ import os
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-
 from portfolio import Portfolio
 from fund import Fund
 from stock import Stock
@@ -41,10 +40,13 @@ def test_portfolio_add_holding():
     portfolio.add_holding(fund)
     assert portfolio.holdings == [fund]
 
+
 def test_add_holding():
     portfolio = Portfolio()
+    # noinspection SpellCheckingInspection
     apple_stock_1 = Stock('AAPL')
     apple_stock_1.value = 1000
+    # noinspection SpellCheckingInspection
     apple_stock_2 = Stock('AAPL')
     apple_stock_2.value = 2000
 
@@ -54,8 +56,10 @@ def test_add_holding():
     assert len(portfolio.holdings) == 1
     assert portfolio.holdings[0].value == 3000
 
+
 def test_add_holding_different_stocks():
     portfolio = Portfolio()
+    # noinspection SpellCheckingInspection
     apple_stock = Stock('AAPL')
     apple_stock.value = 1000
     google_stock = Stock('GOOGL')

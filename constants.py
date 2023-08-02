@@ -1,5 +1,6 @@
 BASE_URL = "https://finance.yahoo.com/quote/"
 
+# noinspection SpellCheckingInspection
 SYMBOL_CORRECTIONS = {
     "BRK.B": "BRK-B",
     "BRK.A": "BRK-A",

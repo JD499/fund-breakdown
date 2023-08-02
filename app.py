@@ -1,4 +1,4 @@
-from flask import Flask, request, render_template, jsonify
+from flask import Flask, request, jsonify
 from portfolio import Portfolio
 from scraper import Scraper
 from request_cache import RequestCache
@@ -12,6 +12,7 @@ app = Flask(__name__)
 CORS(app)  # This will enable CORS for all routes
 
 portfolio = Portfolio()
+
 
 @app.route('/receive', methods=['POST'])
 def receive_data():
@@ -36,10 +37,12 @@ def receive_data():
 
     return jsonify({'message': 'Data received successfully'}), 200
 
+
 @app.route('/return', methods=['GET'])
 def return_data():
     holdings = portfolio.holdings_table()
     return jsonify(holdings=holdings), 200
+
 
 def process_holding(holding, request_cache, portfolio):
     if isinstance(holding, Fund):
@@ -48,6 +51,7 @@ def process_holding(holding, request_cache, portfolio):
             executor.map(lambda sub_holding: process_holding(sub_holding, request_cache, portfolio), holding.holdings)
     else:
         portfolio.add_holding(holding)
+
 
 if __name__ == '__main__':
     app.run(debug=True)

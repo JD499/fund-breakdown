@@ -3,9 +3,9 @@ import os
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-
 from unittest.mock import patch
 from request_cache import RequestCache
+
 
 # Test for RequestCache class
 
@@ -16,8 +16,8 @@ def test_request_cache():
         cache = RequestCache()
 
         # Call the get method twice with the same URL
-        response1 = cache.get("http://example.com")
-        response2 = cache.get("http://example.com")
+        response1 = cache.get("https://example.com")
+        response2 = cache.get("https://example.com")
 
         # Check that the requests.get method was called only once
         assert mocked_get.call_count == 1

@@ -95,7 +95,7 @@ class Fund:
         Returns a table of the fund's holdings as a string.
 
         Args:
-            fund (self): The fund to return the holdings table for.
+             (self): The fund to return the holdings table for.
 
         Returns:
             str: A string representation of the holdings table.

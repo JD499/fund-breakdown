@@ -8,6 +8,7 @@ class RequestCache:
 
     @lru_cache(maxsize=100)
     def _cached_get(self, url):
+        # noinspection SpellCheckingInspection
         headers = {
             "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
             "AppleWebKit/537.36 (KHTML, like Gecko) "

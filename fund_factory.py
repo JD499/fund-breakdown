@@ -34,5 +34,5 @@ class FundFactory:
                     )
                 else:
                     holding = StockFactory.create(holding_data, weighting=weight)
-                fund._holdings.append(holding)
+                fund.holdings.append(holding)
         return fund
