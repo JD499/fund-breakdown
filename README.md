@@ -24,7 +24,7 @@ The backend is written in Python and is responsible for the core logic of the ap
 The frontend is written in TypeScript and React. It provides the user interface for the application. The main components include:
 
 - `App.tsx`: The main application file.
-- `AppBarComponent.tsx`, `DrawerComponent.tsx`, `HoldingsDisplay.tsx`, `MainContent.tsx`, `PortfolioForm.tsx`: These are the main React components used in the application.
+- `AppBarComponent.tsx`, `DrawerComponent.tsx`, `HoldingsDisplay.tsx`, `MainContent.tsx`: These are the main React components used in the application.
 - `constants.ts`: Contains constant values used across the frontend.
 - `main.tsx`: The entry point for the frontend application.
 - `Holdings.tsx`, `Portfolio.tsx`: These files represent different pages in the application.
