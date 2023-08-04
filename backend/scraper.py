@@ -1,7 +1,9 @@
-from bs4 import BeautifulSoup
-from utilities import remove_symbol
-from constants import BASE_URL, SYMBOL_CORRECTIONS
 from concurrent.futures import ThreadPoolExecutor
+
+from bs4 import BeautifulSoup
+
+from constants import BASE_URL, SYMBOL_CORRECTIONS
+from utilities import remove_symbol
 
 
 class Scraper:

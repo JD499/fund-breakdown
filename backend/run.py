@@ -1,10 +1,11 @@
-from portfolio import Portfolio
-from scraper import Scraper
-from request_cache import RequestCache
-from fund_factory import FundFactory
-from stock_factory import StockFactory
-from fund import Fund
 from concurrent.futures import ThreadPoolExecutor
+
+from fund import Fund
+from fund_factory import FundFactory
+from portfolio import Portfolio
+from request_cache import RequestCache
+from scraper import Scraper
+from stock_factory import StockFactory
 
 
 def process_holding(holding, request_cache, portfolio):
@@ -21,7 +22,7 @@ def main():
     portfolio = Portfolio()
     request_cache = RequestCache()
 
-    symbols = [input(f"Enter the symbol for holding {i+1}: ") for i in range(2)]
+    symbols = [input(f"Enter the symbol for holding {i + 1}: ") for i in range(2)]
     with ThreadPoolExecutor() as executor:
         data_list = list(executor.map(lambda symbol: Scraper(symbol, request_cache).get_data(), symbols))
 

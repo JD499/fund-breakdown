@@ -1,12 +1,14 @@
-from flask import Flask, request, jsonify
-from portfolio import Portfolio
-from scraper import Scraper
-from request_cache import RequestCache
-from fund_factory import FundFactory
-from stock_factory import StockFactory
-from fund import Fund
 from concurrent.futures import ThreadPoolExecutor
+
+from flask import Flask, request, jsonify
 from flask_cors import CORS
+
+from fund import Fund
+from fund_factory import FundFactory
+from portfolio import Portfolio
+from request_cache import RequestCache
+from scraper import Scraper
+from stock_factory import StockFactory
 
 app = Flask(__name__)
 CORS(app)  # This will enable CORS for all routes
