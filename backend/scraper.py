@@ -38,8 +38,8 @@ class Scraper:
         )
         if price_element is None:
             raise ValueError("Unable to find price element on page")
-        price = price_element["value"]  # type: ignore
-        return float(price)  # type: ignore
+        price = price_element["value"]
+        return float(price)
 
     def get_name(self):
         url = self._get_url()
@@ -47,7 +47,7 @@ class Scraper:
         name_element = soup.find("h1", {"class": "D(ib) Fz(18px)"})
         if name_element is None:
             new_symbol = input(
-                f"Unable to find name element on page for {self._symbol}. Please enter a new symbol: "  # noqa: E501
+                f"Unable to find name element on page for {self._symbol}. Please enter a new symbol: "
             )
             self._symbol = new_symbol
             return self.get_name()

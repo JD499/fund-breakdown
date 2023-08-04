@@ -8,9 +8,6 @@ from fund import Fund
 from stock import Stock
 
 
-# Test for Portfolio class
-
-
 def test_portfolio_init():
     portfolio = Portfolio()
     assert portfolio.holdings == []
@@ -43,10 +40,10 @@ def test_portfolio_add_holding():
 
 def test_add_holding():
     portfolio = Portfolio()
-    # noinspection SpellCheckingInspection
+
     apple_stock_1 = Stock('AAPL')
     apple_stock_1.value = 1000
-    # noinspection SpellCheckingInspection
+
     apple_stock_2 = Stock('AAPL')
     apple_stock_2.value = 2000
 
@@ -59,7 +56,7 @@ def test_add_holding():
 
 def test_add_holding_different_stocks():
     portfolio = Portfolio()
-    # noinspection SpellCheckingInspection
+
     apple_stock = Stock('AAPL')
     apple_stock.value = 1000
     google_stock = Stock('GOOGL')

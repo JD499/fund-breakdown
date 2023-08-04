@@ -53,9 +53,9 @@ class Fund:
 
     @property
     def value(self):
-        if self._value != 0:  # If value has been manually set, return that
+        if self._value != 0:
             return self._value
-        else:  # If not, return price * shares
+        else:
             return self._price * self._shares
 
     @value.setter
@@ -81,25 +81,14 @@ class Fund:
         else:
             raise ValueError("Holding should be an instance of Stock or Fund")
 
-    # approximate the value of each holding by dividing fund value by holding weight
     def set_holdings_values(self):
-        """
-        Sets the value of each holding in the fund.
-        """
+
         total_value = self.value
         for holding in self.holdings:
             holding.value = total_value * holding.weighting
 
     def holdings_table_string(self):
-        """
-        Returns a table of the fund's holdings as a string.
 
-        Args:
-             (self): The fund to return the holdings table for.
-
-        Returns:
-            str: A string representation of the holdings table.
-        """
         table = ""
         table += f"{'Holding':<20} {'Weighting':<10} {'Price':<10} {'Value':<10}\n"
         table += "-" * 50 + "\n"

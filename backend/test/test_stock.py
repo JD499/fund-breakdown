@@ -6,9 +6,6 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from stock import Stock
 
 
-# Test for Stock class
-
-
 def test_stock_init():
     stock = Stock("symbol")
     assert stock.symbol == "symbol"

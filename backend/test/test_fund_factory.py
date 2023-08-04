@@ -7,9 +7,6 @@ from fund_factory import FundFactory
 from request_cache import RequestCache
 
 
-# Test for FundFactory class
-
-
 def test_fund_factory_create():
     data = {"symbol": "symbol", "name": "name", "price": 100, "holdings": []}
     request_cache = RequestCache()

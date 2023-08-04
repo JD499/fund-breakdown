@@ -49,9 +49,9 @@ class Stock:
 
     @property
     def value(self):
-        if self._value != 0:  # If value has been manually set, return that
+        if self._value != 0:
             return self._value
-        else:  # If not, return price * shares
+        else:
             return self._price * self._shares
 
     @value.setter

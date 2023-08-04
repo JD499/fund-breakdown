@@ -6,9 +6,6 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from fund import Fund
 
 
-# Test for Fund class
-
-
 def test_fund_init():
     fund = Fund("symbol")
     assert fund.symbol == "symbol"
