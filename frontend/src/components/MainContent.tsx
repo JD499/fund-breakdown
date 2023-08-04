@@ -33,7 +33,7 @@ export const MainContent: React.FC = () => {
     formData.append('shares', shares);
   
     try {
-      const response = await axios.post('http://localhost:5000/receive', formData); // Replace with your backend URL
+      const response = await axios.post('https://fund-breakdown-backend.onrender.com/receive' , formData); // Replace with your backend URL
       console.log(response.data); // Log the response to the console
       
       const newPortfolio = [...portfolio, { symbol, shares }];

@@ -21,7 +21,7 @@ export const HoldingsDisplay: React.FC = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const response = await axios.get('http://localhost:5000/return');  // Replace with your server's URL
+        const response = await axios.get('https://fund-breakdown-backend.onrender.com/return');  // Replace with your server's URL
         setHoldings(response.data.holdings);
       } catch (error) {
         console.error('Error fetching data: ', error);
