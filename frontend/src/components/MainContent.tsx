@@ -30,27 +30,27 @@ export const MainContent: React.FC<MainContentProps> = ({setHoldings}) => {
     const [portfolio, setPortfolio] = React.useState<PortfolioItem[]>([]);
 
 
+
     const handleAdd = async () => {
-        const formData = new FormData();
-        formData.append('symbols', symbol);
-        formData.append('shares', shares);
+    const newPortfolio = [...portfolio, { symbol, shares }];
+    //console.log('New Portfolio Item:', { symbol, shares }); // Log the new portfolio item
+    //console.log('Updated Portfolio:', newPortfolio); // Log the entire updated portfolio
+    setPortfolio(newPortfolio);
 
 
-        try {
-            const response = await axios.post('https://fund-breakdown-backend.onrender.com/data', formData);
-            console.log(response.data);
-            setHoldings(response.data.holdings);
+    try {
+        //console.log('Sending POST request with portfolio:', newPortfolio); // Log the data being sent in the POST request
+        const response = await axios.post('https://fund-breakdown-backend.onrender.com/data', { portfolio: newPortfolio });
+        //console.log('Response from server:', response.data); // Log the response from the server
+        setHoldings(response.data.holdings);
+    } catch (error) {
+        //console.error('Error while sending POST request:', error); // Log any errors that occur
+    }
 
-            const newPortfolio = [...portfolio, {symbol, shares}];
-            setPortfolio(newPortfolio);
-            console.log(newPortfolio);
-        } catch (error) {
-            console.error(error);
-        }
+    setSymbol('');
+    setShares('');
+};
 
-        setSymbol('');
-        setShares('');
-    };
 
 
     const theme = useTheme();

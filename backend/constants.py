@@ -21,4 +21,6 @@ SYMBOL_CORRECTIONS = {
     "ILU": "ILU.AX",
     "5406": "5406.T",
     "LOOMIS": "LOOMIS.ST",
+    "GFNORTEO": "GFNORTEO.MX",
+    "HWDN": "HWDN.L",
 }

@@ -17,12 +17,13 @@ CORS(app)
 @app.route('/data', methods=['POST'])
 def receive_and_return_data():
     portfolio = Portfolio()
-
-    symbols = request.form.get('symbols').split(',')
-    shares_list = request.form.get('shares').split(',')
-    shares = [int(share) for share in shares_list]
+    request_data = request.json
+    request_portfolio = request_data['portfolio']
 
     request_cache = RequestCache()
+
+    symbols = [item['symbol'] for item in request_portfolio]
+    shares = [int(item['shares']) for item in request_portfolio]
 
     with ThreadPoolExecutor() as executor:
         data_list = list(executor.map(lambda symbol: Scraper(symbol, request_cache).get_data(), symbols))
@@ -39,6 +40,7 @@ def receive_and_return_data():
 
     holdings = portfolio.holdings_table()
     return jsonify(holdings=holdings), 200
+
 
 
 def process_holding(holding, request_cache, portfolio):
