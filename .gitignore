@@ -1,3 +1,7 @@
-/.idea
-/frontend/node_modules/
-/venv/
+/static/BerkeleyMono-Bold.woff
+/static/BerkeleyMono-Bold.woff2
+/static/BerkeleyMono-Regular.woff
+/static/BerkeleyMono-Regular.woff2
+/.venv/
+/.idea/
+
