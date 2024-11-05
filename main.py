@@ -57,7 +57,7 @@ def get_security_info(ticker):
             if pd.isna(fast_info["lastPrice"]) or fast_info["lastPrice"] == 0:
                 logger.error(f"{ticker} has no valid price data")
                 raise ValueError(f"No valid price data for {ticker}")
-        except (KeyError, AttributeError) as e:
+        except (KeyError, AttributeError):
             logger.error(f"Could not verify price data for {ticker}")
             raise ValueError(f"Could not verify price data for {ticker}")
 
@@ -361,7 +361,7 @@ def analyze_portfolio():
     for ticker, weight in portfolio.items():
         security = get_security_info(ticker)
         if security:
-            security_type = "ETF" if is_etf(security) else "Stock"
+            pass
 
     all_holdings = []
     for ticker, weight in portfolio.items():
@@ -382,8 +382,6 @@ def analyze_portfolio():
     display_df["Weight"] = display_df["Weight"] * 100
 
     pd.set_option("display.max_rows", None)
-
-    sector_breakdown = calculate_portfolio_sector_breakdown(portfolio)
 
 
 def validate_portfolio_weights(portfolio):
