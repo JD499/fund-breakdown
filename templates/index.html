@@ -1,153 +1,171 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>ETF Portfolio Analysis</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta charset="UTF-8">
+    <link rel="icon" type="image/png" href="/static/favicon-96x96.png" sizes="96x96"/>
+    <link rel="icon" type="image/svg+xml" href="/static/favicon.svg"/>
+    <link rel="shortcut icon" href="/static/favicon.ico"/>
+    <link rel="apple-touch-icon" sizes="180x180" href="/static/apple-touch-icon.png"/>
+    <link rel="manifest" href="/static/site.webmanifest"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description"
+          content="Portfolio Analysis Tool - Analyze your investment portfolio's composition and sector distribution. Get detailed breakdowns of holdings and sector allocations based on market data.">
+    <title>Portfolio Breakdown Analysis</title>
     <link rel="stylesheet" href="/static/styles.css">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.7.0/chart.min.js"></script>
+    <script defer src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.7.0/chart.min.js"></script>
 </head>
 
 <body>
-    <header>
-  <div class="container">
-    <h1>Portfolio Breakdown</h1>
-    <p>// Analyze your portfolio composition and sector distribution.</p>
-      <p>// Based on yfinance top holdings, not complete holdings!</p>
-  </div>
+<header>
+    <div class="container">
+        <h1>Portfolio Breakdown</h1>
+        <p>Analyze your portfolio composition and sector distribution.</p>
+        <p class="note">(Based on yfinance top holdings, not complete holdings)</p>
+    </div>
 </header>
-    <main class="container">
-        <form id="portfolio-form" method="post" action="/analyze">
-            <div class="portfolio-input">
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Security Ticker</th>
-                            <th>Weight (%)</th>
-                            <th></th>
-                        </tr>
-                    </thead>
-                    <tbody id="etf-inputs">
-                        <tr>
-                            <td><input type="text" name="ticker_1" placeholder="SPY" required></td>
-                            <td><input type="number" name="weight_1" min="0" max="100" step="0.01" placeholder="100" required></td>
-                            <td><button type="button" class="remove-etf">× Remove ETF</button></td>
-                        </tr>
-                    </tbody>
-                </table>
-                <div class="button-group">
-                    <button type="button" id="add-etf">+ Add Security</button>
-                    <button type="submit">▶ Analyze</button>
-                </div>
-            </div>
-        </form>
-        <div id="error-message" class="error-message" style="display: none;"></div>
-        <div id="loading" class="loading" style="display: none;"></div>
-        <div id="results" class="results-grid" style="display: none;">
-            <div class="results-card">
-                <h2>Holdings Breakdown</h2>
-                <div id="holdings-table"></div>
-            </div>
-            <div class="results-card">
-                <h2>Sector Distribution</h2>
-                <div id="chart-container"></div>
-            </div>
-        </div>
-    </main>
-    <script>
-        let etfCount = 1;
-        let chart = null;
-
-        document.getElementById('add-etf').addEventListener('click', function() {
-            etfCount++;
-            let newRow = `
+<main class="container">
+    <form id="portfolio-form" method="post" action="/analyze">
+        <section class="portfolio-input">
+            <table>
+                <thead>
                 <tr>
-                    <td><input type="text" name="ticker_${etfCount}" placeholder="VXUS" required></td>
-                    <td><input type="number" name="weight_${etfCount}" min="0" max="100" step="0.01" placeholder="25" required></td>
-                    <td><button type="button" class="remove-etf">× Remove ETF</button></td>
+                    <th scope="col">Security Ticker</th>
+                    <th scope="col">Weight (%)</th>
+                    <th scope="col" aria-label="Actions"></th>
                 </tr>
-            `;
-            document.getElementById('etf-inputs').insertAdjacentHTML('beforeend', newRow);
-        });
+                </thead>
+                <tbody id="etf-inputs">
+                <tr>
+                    <td><input type="text" aria-label="Security Ticker" name="ticker_1" placeholder="SPY" required></td>
+                    <td><input type="number" aria-label="Weight Percentage" name="weight_1" min="0" max="100"
+                               step="0.01" placeholder="100" required></td>
+                    <td>
+                        <button type="button" class="remove-etf" aria-label="Remove Security">×</button>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+            <div class="button-group">
+                <button type="button" id="add-etf" aria-label="Add New Security">+ Add Security</button>
+                <button type="submit" id="analyze" aria-label="Analyze Portfolio">▶ Analyze</button>
+            </div>
+        </section>
+    </form>
+    <div id="error-message" class="error-message" role="alert" style="display: none;"></div>
+    <div id="loading" class="loading" role="status" style="display: none;">Analyzing portfolio...</div>
+    <section id="results" class="results-grid" style="display: none;">
+        <div class="results-card">
+            <h2>Holdings Breakdown</h2>
+            <div id="holdings-table" tabindex="0" aria-label="Holdings Breakdown Table"></div>
+        </div>
 
-        document.getElementById('etf-inputs').addEventListener('click', function(event) {
-            if (event.target.className === 'remove-etf') {
-                event.target.parentNode.parentNode.remove();
+        <div class="results-card">
+            <h2>Sector Distribution</h2>
+            <div id="chart-container" role="img" aria-label="Sector Distribution Chart"></div>
+        </div>
+    </section>
+</main>
+<script>
+    let etfCount = 1;
+    let chart = null;
+
+    document.getElementById('add-etf').addEventListener('click', function () {
+        etfCount++;
+        const newRow = `
+        <tr>
+            <td><input type="text"
+                       aria-label="Security Ticker ${etfCount}"
+                       name="ticker_${etfCount}"
+                       placeholder="SPY"
+                       required></td>
+            <td><input type="number"
+                       aria-label="Weight Percentage ${etfCount}"
+                       name="weight_${etfCount}"
+                       min="0"
+                       max="100"
+                       step="0.01"
+                       placeholder="100"
+                       required></td>
+            <td><button type="button"
+                        class="remove-etf"
+                        aria-label="Remove Security ${etfCount}">×</button></td>
+        </tr>
+    `;
+        document.getElementById('etf-inputs').insertAdjacentHTML('beforeend', newRow);
+    });
+
+    document.getElementById('etf-inputs').addEventListener('click', function (event) {
+        if (event.target.className === 'remove-etf') {
+            event.target.parentNode.parentNode.remove();
+        }
+    });
+
+    document.getElementById('portfolio-form').addEventListener('submit', async function (event) {
+        event.preventDefault();
+
+        document.getElementById('error-message').style.display = 'none';
+        document.getElementById('loading').style.display = 'block';
+        document.getElementById('results').style.display = 'none';
+
+        const form = event.target;
+        const formData = new FormData(form);
+
+        try {
+            const response = await fetch('/analyze', {
+                method: 'POST',
+                body: formData
+            });
+
+            const data = await response.json();
+
+            if (data.error) {
+                document.getElementById('error-message').textContent = data.error;
+                document.getElementById('error-message').style.display = 'block';
+            } else {
+                displayHoldings(data.holdings);
+                displaySectors(data.sectors);
+                document.getElementById('results').style.display = 'grid';
             }
-        });
+        } catch (error) {
+            console.error('Error:', error);
+            document.getElementById('error-message').textContent = 'An error occurred. Please try again.';
 
-        document.getElementById('portfolio-form').addEventListener('submit', async function(event) {
-            event.preventDefault();
+            document.getElementById('error-message').style.display = 'flex';
+        }
 
-            document.getElementById('error-message').style.display = 'none';
-            document.getElementById('loading').style.display = 'block';
-            document.getElementById('results').style.display = 'none';
+        document.getElementById('loading').style.display = 'none';
+    });
 
-            const form = event.target;
-            const formData = new FormData(form);
-
-            try {
-                const response = await fetch('/analyze', {
-                    method: 'POST',
-                    body: formData
-                });
-
-                const data = await response.json();
-
-                if (data.error) {
-                    document.getElementById('error-message').textContent = data.error;
-                    document.getElementById('error-message').style.display = 'block';
-                } else {
-                    displayHoldings(data.holdings);
-                    displaySectors(data.sectors);
-                    document.getElementById('results').style.display = 'grid';
-                }
-            } catch (error) {
-                console.error('Error:', error);
-                document.getElementById('error-message').textContent = 'An error occurred. Please try again.';
-
-                document.getElementById('error-message').style.display = 'flex';
-            }
-
-            document.getElementById('loading').style.display = 'none';
-        });
-
-        function displayHoldings(holdings) {
-            let tableHtml = `
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Name</th>
-                            <th>Ticker</th>
-
-                            <th>Sector</th>
-                            <th>Nation</th>
-                            <th>Weight</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-            `;
-
-            holdings.forEach(holding => {
-                tableHtml += `
+    function displayHoldings(holdings) {
+        document.getElementById('holdings-table').innerHTML = `
+        <table aria-label="Portfolio Holdings">
+            <thead>
+                <tr>
+                    <th scope="col">Name</th>
+                    <th scope="col">Ticker</th>
+                    <th scope="col">Sector</th>
+                    <th scope="col">Nation</th>
+                    <th scope="col">Weight</th>
+                </tr>
+            </thead>
+            <tbody>
+                ${holdings.map(holding => `
                     <tr>
                         <td>${holding.Name}</td>
                         <td>${holding.Ticker}</td>
                         <td>${holding.Sector}</td>
                         <td>${holding.Nation}</td>
-                        <td>${holding.Weight.toFixed(2)}%</td>
+                        <td aria-label="Weight ${holding.Weight.toFixed(2)} percent">
+                            ${holding.Weight.toFixed(2)}%
+                        </td>
                     </tr>
-                `;
-            });
+                `).join('')}
+            </tbody>
+        </table>
+    `;
+    }
 
-            tableHtml += `
-                    </tbody>
-                </table>
-            `;
-
-            document.getElementById('holdings-table').innerHTML = tableHtml;
-        }
-
-            function displaySectors(sectors) {
+    function displaySectors(sectors) {
         const sectorData = Object.entries(sectors).map(([sector, weight]) => ({
             sector,
             weight: weight.toFixed(2)
@@ -155,17 +173,18 @@
 
         const ctx = document.createElement('canvas');
         ctx.id = 'sectorChart';
-        document.getElementById('chart-container').innerHTML = '';
-        document.getElementById('chart-container').appendChild(ctx);
+        ctx.setAttribute('role', 'img');
+        ctx.setAttribute('aria-label', 'Sector Distribution Chart');
 
+        const container = document.getElementById('chart-container');
+        container.innerHTML = '';
+        container.appendChild(ctx);
 
         if (chart) {
             chart.destroy();
         }
 
-
-
-        Chart.defaults.font.family = 'Berkeley Mono'
+        Chart.defaults.font.family = 'Berkeley Mono';
         chart = new Chart(ctx, {
             type: 'pie',
             data: {
@@ -173,20 +192,10 @@
                 datasets: [{
                     data: sectorData.map(data => data.weight),
                     backgroundColor: [
-            '#0366d6',
-            '#28a745',
-            '#6f42c1',
-            '#f6a580',
-            '#d79922',
-            '#959da5',
-            '#586069',
-            '#2188ff',
-            '#34d058',
-            '#8a63d2',
-            '#f08080'
-        ]
-                },
-                ]
+                        '#0366d6', '#28a745', '#6f42c1', '#f6a580', '#d79922',
+                        '#959da5', '#586069', '#2188ff', '#34d058', '#8a63d2', '#f08080'
+                    ]
+                }]
             },
             options: {
                 responsive: true,
@@ -203,27 +212,15 @@
                         }
                     },
                     tooltip: {
-        callbacks: {
-          label: function(context) {
-            const label = context.label || '';
-            const value = context.parsed || 0;
-            const percentage = value.toFixed(2) + '%';
-            return `${label}: ${percentage}`;
-          }
-        }
-      }
+                        callbacks: {
+                            label: function (context) {
+                                const label = context.label || '';
+                                const value = context.parsed || 0;
+                                return `${label}: ${value.toFixed(2)}%`;
+                            }
+                        }
+                    }
                 }
-            }
-        });
-
-
-        window.addEventListener('resize', () => {
-            if (chart) {
-                chart.options.plugins.legend.position = window.innerWidth < 768 ? 'bottom' : 'right';
-                chart.options.plugins.legend.labels.font.size = window.innerWidth < 768 ? 10 : 12;
-                chart.options.plugins.legend.labels.boxWidth = window.innerWidth < 768 ? 12 : 16;
-                chart.options.plugins.legend.labels.padding = window.innerWidth < 768 ? 10 : 15;
-                chart.update();
             }
         });
     }
