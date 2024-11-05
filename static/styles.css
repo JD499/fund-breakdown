@@ -118,14 +118,14 @@ button:hover {
     border-color: var(--primary-color);
 }
 
-.remove-etf {
+.remove-security {
     width: 100%;
     padding: 0.5rem;
     min-width: 40px;
     color: var(--error-color);
 }
 
-.remove-etf:hover {
+.remove-security:hover {
     background: var(--error-color);
     border-color: var(--error-color);
 }
