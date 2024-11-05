@@ -34,19 +34,19 @@
                     <th scope="col" aria-label="Actions"></th>
                 </tr>
                 </thead>
-                <tbody id="etf-inputs">
+                <tbody id="security-inputs">
                 <tr>
                     <td><input type="text" aria-label="Security Ticker" name="ticker_1" placeholder="SPY" required></td>
                     <td><input type="number" aria-label="Weight Percentage" name="weight_1" min="0" max="100"
                                step="0.01" placeholder="100" required></td>
                     <td>
-                        <button type="button" class="remove-etf" aria-label="Remove Security">×</button>
+                        <button type="button" class="remove-security" aria-label="Remove Security">×</button>
                     </td>
                 </tr>
                 </tbody>
             </table>
             <div class="button-group">
-                <button type="button" id="add-etf" aria-label="Add New Security">+ Add Security</button>
+                <button type="button" id="add-security" aria-label="Add New Security">+ Add Security</button>
                 <button type="submit" id="analyze" aria-label="Analyze Portfolio">▶ Analyze</button>
             </div>
         </section>
@@ -66,36 +66,36 @@
     </section>
 </main>
 <script>
-    let etfCount = 1;
+    let securityCount = 1;
     let chart = null;
 
-    document.getElementById('add-etf').addEventListener('click', function () {
-        etfCount++;
+    document.getElementById('add-security').addEventListener('click', function () {
+        securityCount++;
         const newRow = `
         <tr>
             <td><input type="text"
-                       aria-label="Security Ticker ${etfCount}"
-                       name="ticker_${etfCount}"
+                       aria-label="Security Ticker ${securityCount}"
+                       name="ticker_${securityCount}"
                        placeholder="SPY"
                        required></td>
             <td><input type="number"
-                       aria-label="Weight Percentage ${etfCount}"
-                       name="weight_${etfCount}"
+                       aria-label="Weight Percentage ${securityCount}"
+                       name="weight_${securityCount}"
                        min="0"
                        max="100"
                        step="0.01"
                        placeholder="100"
                        required></td>
             <td><button type="button"
-                        class="remove-etf"
-                        aria-label="Remove Security ${etfCount}">×</button></td>
+                        class="remove-security"
+                        aria-label="Remove Security ${securityCount}">×</button></td>
         </tr>
     `;
-        document.getElementById('etf-inputs').insertAdjacentHTML('beforeend', newRow);
+        document.getElementById('security-inputs').insertAdjacentHTML('beforeend', newRow);
     });
 
-    document.getElementById('etf-inputs').addEventListener('click', function (event) {
-        if (event.target.className === 'remove-etf') {
+    document.getElementById('security-inputs').addEventListener('click', function (event) {
+        if (event.target.className === 'remove-security') {
             event.target.parentNode.parentNode.remove();
         }
     });
@@ -130,7 +130,6 @@
             console.error('Error:', error);
             document.getElementById('error-message').textContent = 'An error occurred. Please try again.';
 
-            document.getElementById('error-message').style.display = 'flex';
         }
 
         document.getElementById('loading').style.display = 'none';
