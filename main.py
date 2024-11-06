@@ -7,13 +7,6 @@ import pandas as pd
 from time import sleep
 import logging
 
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
-    handlers=[logging.FileHandler("portfolio_analyzer.log"), logging.StreamHandler()],
-)
-
-logger = logging.getLogger(__name__)
 
 app = FastAPI()
 app.mount("/static", StaticFiles(directory="static"), name="static")
@@ -29,7 +22,7 @@ TICKER_MAPPINGS = {
 def remap_ticker(ticker):
     mapped_ticker = TICKER_MAPPINGS.get(ticker, ticker)
     if mapped_ticker != ticker:
-        logger.info(f"Remapped ticker {ticker} to {mapped_ticker}")
+        logging.info(f"Remapped ticker {ticker} to {mapped_ticker}")
     return mapped_ticker
 
 
@@ -37,34 +30,34 @@ def get_security_info(ticker):
     try:
         ticker = remap_ticker(ticker)
 
-        logger.info(f"Fetching data for {ticker}...")
+        logging.info(f"Fetching data for {ticker}...")
         security = yf.Ticker(ticker)
 
         if not hasattr(security, "info") or security.info is None:
-            logger.error(f"Could not fetch info for {ticker}")
+            logging.error(f"Could not fetch info for {ticker}")
             raise ValueError(f"Could not fetch info for {ticker}")
 
         try:
             fast_info = security.fast_info
             if fast_info is None:
-                logger.error(f"{ticker} has no fast_info data")
+                logging.error(f"{ticker} has no fast_info data")
                 raise ValueError(f"Could not fetch price data for {ticker}")
         except Exception as e:
-            logger.error(f"Error getting fast_info for {ticker}: {str(e)}")
+            logging.error(f"Error getting fast_info for {ticker}: {str(e)}")
             raise ValueError(f"Could not fetch price data for {ticker}")
 
         try:
             if pd.isna(fast_info["lastPrice"]) or fast_info["lastPrice"] == 0:
-                logger.error(f"{ticker} has no valid price data")
+                logging.error(f"{ticker} has no valid price data")
                 raise ValueError(f"No valid price data for {ticker}")
         except (KeyError, AttributeError):
-            logger.error(f"Could not verify price data for {ticker}")
+            logging.error(f"Could not verify price data for {ticker}")
             raise ValueError(f"Could not verify price data for {ticker}")
 
         return security
 
     except Exception as e:
-        logger.error(f"Error fetching data for {ticker}: {str(e)}")
+        logging.error(f"Error fetching data for {ticker}: {str(e)}")
         raise ValueError(f"Failed to process {ticker}: {str(e)}")
 
 
@@ -74,11 +67,11 @@ def get_sector(security):
         if not sector or pd.isna(sector):
             sector = security.info.get("industry", "Unknown")
         if not sector or pd.isna(sector):
-            logger.warning(f"No sector information found for security")
+            logging.warning(f"No sector information found for security")
             return "Unknown"
         return sector
     except:
-        logger.warning(f"Error getting sector information")
+        logging.warning(f"Error getting sector information")
         return "Unknown"
 
 
@@ -91,7 +84,7 @@ def get_nation(security):
 
         return country
     except:
-        logger.warning(f"Error getting country information")
+        logging.warning(f"Error getting country information")
         return "Unknown"
 
 
@@ -102,7 +95,7 @@ def get_etf_sector_breakdown(security):
             if sector_data is not None:
                 return {k.capitalize(): v for k, v in sector_data.items()}
     except:
-        logger.warning(f"Error getting ETF sector breakdown")
+        logging.warning(f"Error getting ETF sector breakdown")
     return {}
 
 
@@ -126,7 +119,7 @@ def is_etf(security):
             for keyword in ["ETF", "FUND", "TRUST"]
         )
     except:
-        logger.warning(f"Error determining if security is ETF")
+        logging.warning(f"Error determining if security is ETF")
         return False
 
 
@@ -145,7 +138,7 @@ def get_holdings_data(etf):
 
             return holdings
     except Exception as e:
-        logger.error(f"Error getting holdings: {str(e)}")
+        logging.error(f"Error getting holdings: {str(e)}")
     return pd.DataFrame()
 
 
@@ -161,7 +154,7 @@ def calculate_look_through(
         processed_funds = set()
 
     if depth > max_depth or ticker in processed_funds:
-        logger.warning(f"Max depth reached or fund already processed: {ticker}")
+        logging.warning(f"Max depth reached or fund already processed: {ticker}")
         return pd.DataFrame()
 
     processed_funds.add(ticker)
@@ -176,7 +169,7 @@ def calculate_look_through(
     nation = get_nation(security)
 
     if security_type == "Stock":
-        logger.info(
+        logging.info(
             f"Processing stock: {ticker} ({portfolio_weight:.1f}% of portfolio)"
         )
         return pd.DataFrame(
@@ -193,7 +186,7 @@ def calculate_look_through(
 
     holdings = get_holdings_data(security)
     if holdings.empty:
-        logger.warning(f"No holdings data available for {ticker}")
+        logging.warning(f"No holdings data available for {ticker}")
         return pd.DataFrame(
             {
                 "Name": [security_name],
@@ -207,7 +200,7 @@ def calculate_look_through(
         )
 
     final_holdings = []
-    logger.info(
+    logging.info(
         f"Processing {ticker} ({portfolio_weight:.1f}% of portfolio) with {len(holdings)} holdings..."
     )
 
@@ -216,7 +209,7 @@ def calculate_look_through(
 
         if is_fund(row["Name"]):
             fund_ticker = row["Ticker"]
-            logger.info(f"Found fund: {row['Name']} ({fund_ticker})")
+            logging.info(f"Found fund: {row['Name']} ({fund_ticker})")
 
             sleep(1)
             underlying_holdings = calculate_look_through(
@@ -266,7 +259,7 @@ def calculate_look_through(
 
 
 def merge_holdings(combined):
-    logger.info("Merging holdings...")
+    logging.info("Merging holdings...")
     combined["StandardTicker"] = combined["Ticker"].apply(standardize_ticker)
 
     merged = (
@@ -294,7 +287,7 @@ def merge_holdings(combined):
 
 
 def calculate_portfolio_sector_breakdown(portfolio):
-    logger.info("Calculating sector breakdown...")
+    logging.info("Calculating sector breakdown...")
     sector_weights = {}
 
     for ticker, weight in portfolio.items():
@@ -316,7 +309,7 @@ def calculate_portfolio_sector_breakdown(portfolio):
 
 
 def get_portfolio_input():
-    logger.info("Getting portfolio input...")
+    logging.info("Getting portfolio input...")
     portfolio = {}
 
     while True:
@@ -327,35 +320,35 @@ def get_portfolio_input():
 
             parts = line.split()
             if len(parts) != 2:
-                logger.warning("Invalid input format")
+                logging.warning("Invalid input format")
                 continue
 
             ticker, weight = parts
             weight = float(weight)
 
             if weight <= 0:
-                logger.warning("Invalid weight (non-positive)")
+                logging.warning("Invalid weight (non-positive)")
                 continue
 
             portfolio[ticker.upper()] = weight / 100
 
         except ValueError:
-            logger.warning("Invalid weight format")
+            logging.warning("Invalid weight format")
             continue
 
     total_weight = sum(portfolio.values())
     if total_weight == 0:
-        logger.warning("Empty portfolio")
+        logging.warning("Empty portfolio")
         return {}
 
     return {ticker: weight / total_weight for ticker, weight in portfolio.items()}
 
 
 def analyze_portfolio():
-    logger.info("Starting portfolio analysis...")
+    logging.info("Starting portfolio analysis...")
     portfolio = get_portfolio_input()
     if not portfolio:
-        logger.warning("No valid portfolio entered")
+        logging.warning("No valid portfolio entered")
         return
 
     for ticker, weight in portfolio.items():
@@ -370,13 +363,13 @@ def analyze_portfolio():
             all_holdings.append(holdings)
 
     if not all_holdings:
-        logger.warning("No holdings data available")
+        logging.warning("No holdings data available")
         return
 
     combined = pd.concat(all_holdings, ignore_index=True)
     merged = merge_holdings(combined)
 
-    logger.info("Generating results...")
+    logging.info("Generating results...")
     display_df = merged.head(50).copy()
     display_df.index = range(1, len(display_df) + 1)
     display_df["Weight"] = display_df["Weight"] * 100
@@ -391,7 +384,7 @@ def validate_portfolio_weights(portfolio):
     total_weight = sum(weight for weight in portfolio.values())
 
     if abs(total_weight - 100) > 0.01:
-        logger.warning(f"Portfolio weights sum to {total_weight}%, not 100%")
+        logging.warning(f"Portfolio weights sum to {total_weight}%, not 100%")
         return (
             False,
             f"Portfolio weights must sum to 100% (currently {total_weight:.2f}%)",
@@ -399,13 +392,13 @@ def validate_portfolio_weights(portfolio):
 
     for ticker, weight in portfolio.items():
         if weight <= 0:
-            logger.warning(f"Invalid weight for {ticker}: {weight}%")
+            logging.warning(f"Invalid weight for {ticker}: {weight}%")
             return False, f"Invalid weight for {ticker}: {weight}% (must be positive)"
         if weight > 100:
-            logger.warning(f"Invalid weight for {ticker}: {weight}%")
+            logging.warning(f"Invalid weight for {ticker}: {weight}%")
             return False, f"Invalid weight for {ticker}: {weight}% (must be ≤ 100%)"
 
-    logger.info("Portfolio weights validated successfully")
+    logging.info("Portfolio weights validated successfully")
     return True, ""
 
 
@@ -413,11 +406,12 @@ def validate_portfolio_weights(portfolio):
 async def home(request: Request):
     logger.info("Serving home page")
     return templates.TemplateResponse("index.html", {"request": request})
+    logging.info("Serving home page")
 
 
 @app.post("/analyze")
 async def analyze(request: Request):
-    logger.info("Processing analysis request")
+    logging.info("Processing analysis request")
     form_data = await request.form()
     portfolio = {}
     for key, value in form_data.items():
@@ -429,7 +423,7 @@ async def analyze(request: Request):
 
     is_valid, error_message = validate_portfolio_weights(portfolio)
     if not is_valid:
-        logger.warning(f"Portfolio validation failed: {error_message}")
+        logging.warning(f"Portfolio validation failed: {error_message}")
         return {"error": error_message}
 
     all_holdings = []
@@ -439,7 +433,7 @@ async def analyze(request: Request):
             all_holdings.append(holdings)
 
     if not all_holdings:
-        logger.warning("No holdings data available")
+        logging.warning("No holdings data available")
         return {"error": "No holdings data available"}
 
     combined = pd.concat(all_holdings, ignore_index=True)
@@ -448,5 +442,5 @@ async def analyze(request: Request):
 
     sector_breakdown = calculate_portfolio_sector_breakdown(portfolio)
 
-    logger.info("Analysis complete")
+    logging.info("Analysis complete")
     return {"holdings": holdings_data, "sectors": sector_breakdown}
