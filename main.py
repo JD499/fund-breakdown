@@ -1,7 +1,6 @@
 from fastapi import FastAPI, Request
-from fastapi.responses import HTMLResponse
+from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
-from fastapi.templating import Jinja2Templates
 import yfinance as yf
 import pandas as pd
 from time import sleep
@@ -10,7 +9,6 @@ import logging
 
 app = FastAPI()
 app.mount("/static", StaticFiles(directory="static"), name="static")
-templates = Jinja2Templates(directory="templates")
 
 TICKER_MAPPINGS = {
     "SMSN": "SMSN.IL",
@@ -402,11 +400,10 @@ def validate_portfolio_weights(portfolio):
     return True, ""
 
 
-@app.get("/", response_class=HTMLResponse)
-async def home(request: Request):
-    logger.info("Serving home page")
-    return templates.TemplateResponse("index.html", {"request": request})
+@app.get("/", response_class=FileResponse)
+def home():
     logging.info("Serving home page")
+    return "index.html"
 
 
 @app.post("/analyze")
