@@ -173,6 +173,16 @@ button:hover {
     background: var(--error-background);
 }
 
+.social-links {
+    display: flex;
+    gap: 1.5rem;
+}
+
+.social-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+}
 
 @media (max-width: 768px) {
     :root {
