@@ -1,5 +1,6 @@
 import logging
 from typing import Annotated
+
 import pandas as pd
 import yfinance as yf
 from fastapi import FastAPI, HTTPException, Form
@@ -52,7 +53,7 @@ def get_security_info(ticker: str) -> Ticker:
 def get_sector(security):
     sector = security.info.get("sector", "")
     if not sector or pd.isna(sector):
-        logging.warning(f"No sector information found for security")
+        logging.warning("No sector information found for security")
         return "Unknown"
     return sector
 
