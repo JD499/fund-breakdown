@@ -99,18 +99,10 @@ def standardize_ticker(ticker):
 
 
 def is_etf(security):
-    try:
-        return security.info.get("quoteType", "").upper() in [
-            "ETF",
-            "MUTUALFUND",
-        ] or any(
-            keyword in security.info.get("longName", "").upper()
-            for keyword in ["ETF", "FUND", "TRUST"]
-        )
-    except:
-        logging.warning(f"Error determining if security is ETF")
-        return False
-
+    return security.info.get("quoteType", "").upper() in [
+        "ETF",
+        "MUTUALFUND",
+    ]
 
 def get_holdings_data(etf):
     try:
@@ -129,11 +121,6 @@ def get_holdings_data(etf):
     except Exception as e:
         logging.error(f"Error getting holdings: {str(e)}")
     return pd.DataFrame()
-
-
-def is_fund(name):
-    fund_keywords = ["ETF", "FUND", "TRUST", "AVANTIS", "VANGUARD", "ISHARES", "SPDR"]
-    return any(keyword in str(name).upper() for keyword in fund_keywords)
 
 
 def calculate_look_through(
@@ -196,7 +183,7 @@ def calculate_look_through(
     for _, row in holdings.iterrows():
         weight = row["Weight"] * portfolio_weight
 
-        if is_fund(row["Name"]):
+        if is_etf(security):
             fund_ticker = row["Ticker"]
             logging.info(f"Found fund: {row['Name']} ({fund_ticker})")
 
