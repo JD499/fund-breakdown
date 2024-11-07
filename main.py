@@ -92,20 +92,10 @@ def get_holdings_data(etf):
 
 
 def calculate_look_through(
-    ticker, portfolio_weight=1.0, depth=0, processed_funds=None, max_depth=5
+    ticker: str,
+    portfolio_weight: float = 1.0,
 ):
-    if processed_funds is None:
-        processed_funds = set()
-
-    if depth > max_depth or ticker in processed_funds:
-        logging.warning(f"Max depth reached or fund already processed: {ticker}")
-        return pd.DataFrame()
-
-    processed_funds.add(ticker)
-
     security = get_security_info(ticker)
-    if security is None:
-        return pd.DataFrame()
 
     security_type = "ETF" if is_etf(security) else "Stock"
     security_name = security.info.get("longName", ticker)
@@ -151,55 +141,14 @@ def calculate_look_through(
     for _, row in holdings.iterrows():
         weight = row["Weight"] * portfolio_weight
 
-        if is_etf(security):
-            fund_ticker = row["Ticker"]
-            logging.info(f"Found fund: {row['Name']} ({fund_ticker})")
+        fund_ticker = row["Ticker"]
+        logging.info(f"Found fund: {row['Name']} ({fund_ticker})")
 
-            sleep(1)
-            underlying_holdings = calculate_look_through(
-                fund_ticker, weight, depth + 1, processed_funds
-            )
+        underlying_holdings = calculate_look_through(fund_ticker, weight)
 
-            if not underlying_holdings.empty:
-                final_holdings.append(underlying_holdings)
-            else:
-                final_holdings.append(
-                    pd.DataFrame(
-                        {
-                            "Name": [row["Name"]],
-                            "Ticker": [fund_ticker],
-                            "Weight": [weight],
-                            "Type": ["ETF"],
-                            "Sector": ["ETF"],
-                            "Nation": ["Unknown"],
-                            "DirectHolding": [False],
-                        }
-                    )
-                )
-        else:
-            stock_security = get_security_info(row["Ticker"])
-            sector = get_sector(stock_security) if stock_security else "Unknown"
-            nation = get_nation(stock_security) if stock_security else "Unknown"
+        final_holdings.append(underlying_holdings)
 
-            final_holdings.append(
-                pd.DataFrame(
-                    {
-                        "Name": [row["Name"]],
-                        "Ticker": [row["Ticker"]],
-                        "Weight": [weight],
-                        "Type": ["Stock"],
-                        "Sector": [sector],
-                        "Nation": [nation],
-                        "DirectHolding": [False],
-                    }
-                )
-            )
-
-    return (
-        pd.concat(final_holdings, ignore_index=True)
-        if final_holdings
-        else pd.DataFrame()
-    )
+    return pd.concat(final_holdings, ignore_index=True)
 
 
 def merge_holdings(combined):
@@ -250,7 +199,6 @@ def calculate_portfolio_sector_breakdown(portfolio):
             sector_weights[sector] = sector_weights.get(sector, 0) + weight
 
     return sector_weights
-
 
 
 def build_portfolio(ticker: list[str], weight: list[str]) -> dict[str, float]:
