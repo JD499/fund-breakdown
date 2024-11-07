@@ -67,15 +67,10 @@ def get_nation(security):
 
 
 def get_etf_sector_breakdown(security):
-    try:
-        if hasattr(security, "funds_data"):
-            sector_data = security.funds_data.sector_weightings
-            if sector_data is not None:
-                return {k.capitalize(): v for k, v in sector_data.items()}
-    except:
-        logging.warning(f"Error getting ETF sector breakdown")
-    return {}
-
+    if hasattr(security, "funds_data"):
+        sector_data = security.funds_data.sector_weightings
+        if sector_data is not None:
+            return {k.capitalize(): v for k, v in sector_data.items()}
 
 
 def is_etf(security):
