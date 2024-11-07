@@ -65,16 +65,11 @@ def get_sector(security):
 
 
 def get_nation(security):
-    try:
         country = security.info.get("country", "")
-
         if not country or pd.isna(country):
             return "Unknown"
 
         return country
-    except:
-        logging.warning(f"Error getting country information")
-        return "Unknown"
 
 
 def get_etf_sector_breakdown(security):
