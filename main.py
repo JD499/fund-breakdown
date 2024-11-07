@@ -1,11 +1,11 @@
-from fastapi import FastAPI, Request
+import logging
+from time import sleep
+from typing import Annotated
+import pandas as pd
+import yfinance as yf
+from fastapi import FastAPI, HTTPException, Form
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
-import yfinance as yf
-import pandas as pd
-from time import sleep
-import logging
-
 
 app = FastAPI()
 app.mount("/static", StaticFiles(directory="static"), name="static")
@@ -375,29 +375,39 @@ def analyze_portfolio():
     pd.set_option("display.max_rows", None)
 
 
-def validate_portfolio_weights(portfolio):
-    if not portfolio:
-        return False, "Portfolio is empty"
+def build_portfolio(ticker: list[str], weight: list[str]) -> dict[str, float]:
+    if not ticker:
+        raise HTTPException(status_code=400, detail="Portfolio is empty")
 
-    total_weight = sum(weight for weight in portfolio.values())
+    portfolio: dict[str, float] = {}
+    total_weight: float = 0
+
+    for ticker, weight in zip(ticker, weight):
+        ticker = ticker.strip().upper()
+        try:
+            weight = float(weight)
+            if not ticker or weight < 0 or weight > 100:
+                raise HTTPException(
+                    status_code=400,
+                    detail=f"Invalid weight for {ticker}: {weight}% (must be between 0-100%)",
+                )
+
+            portfolio[ticker] = weight
+            total_weight += weight
+
+        except ValueError:
+            raise HTTPException(
+                status_code=400, detail=f"Invalid weight value: {weight}"
+            )
 
     if abs(total_weight - 100) > 0.01:
-        logging.warning(f"Portfolio weights sum to {total_weight}%, not 100%")
-        return (
-            False,
-            f"Portfolio weights must sum to 100% (currently {total_weight:.2f}%)",
+        raise HTTPException(
+            status_code=400,
+            detail=f"Portfolio weights must sum to 100% (currently {total_weight:.2f}%)",
         )
 
-    for ticker, weight in portfolio.items():
-        if weight <= 0:
-            logging.warning(f"Invalid weight for {ticker}: {weight}%")
-            return False, f"Invalid weight for {ticker}: {weight}% (must be positive)"
-        if weight > 100:
-            logging.warning(f"Invalid weight for {ticker}: {weight}%")
-            return False, f"Invalid weight for {ticker}: {weight}% (must be ≤ 100%)"
-
-    logging.info("Portfolio weights validated successfully")
-    return True, ""
+    logging.info("Portfolio built successfully")
+    return portfolio
 
 
 @app.get("/", response_class=FileResponse)
@@ -407,21 +417,12 @@ def home():
 
 
 @app.post("/analyze")
-async def analyze(request: Request):
+async def analyze(
+    ticker: Annotated[list[str], Form()], weight: Annotated[list[str], Form()]
+):
     logging.info("Processing analysis request")
-    form_data = await request.form()
-    portfolio = {}
-    for key, value in form_data.items():
-        if key.startswith("ticker_"):
-            ticker = value.strip().upper()
-            weight = float(form_data.get(f"weight_{key[7:]}", 0))
-            if ticker and weight > 0:
-                portfolio[ticker] = weight
 
-    is_valid, error_message = validate_portfolio_weights(portfolio)
-    if not is_valid:
-        logging.warning(f"Portfolio validation failed: {error_message}")
-        return {"error": error_message}
+    portfolio = build_portfolio(ticker, weight)
 
     all_holdings = []
     for ticker, weight in portfolio.items():
