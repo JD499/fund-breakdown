@@ -33,13 +33,6 @@ def get_security_info(ticker: str) -> Ticker:
 
     fast_info = security.fast_info
 
-        try:
-            if pd.isna(fast_info["lastPrice"]) or fast_info["lastPrice"] == 0:
-                logging.error(f"{ticker} has no valid price data")
-                raise ValueError(f"No valid price data for {ticker}")
-        except (KeyError, AttributeError):
-            logging.error(f"Could not verify price data for {ticker}")
-            raise ValueError(f"Could not verify price data for {ticker}")
     try:
         if fast_info["lastPrice"] == 0:
             logging.error(f"Could not verify price data for {ticker}")
@@ -55,10 +48,6 @@ def get_security_info(ticker: str) -> Ticker:
         )
 
     return security
-
-    except Exception as e:
-        logging.error(f"Error fetching data for {ticker}: {str(e)}")
-        raise ValueError(f"Failed to process {ticker}: {str(e)}")
 
 
 def get_sector(security):
