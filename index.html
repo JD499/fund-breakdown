@@ -116,12 +116,8 @@
                 body: formData
             });
 
-            const data = await response.json();
-
             if (!response.ok) {
 
-            if (data.error) {
-                document.getElementById('error-message').textContent = data.error;
                 const errorData = await response.json();
 
                 document.getElementById('error-message').textContent = errorData.detail;
