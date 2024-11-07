@@ -79,23 +79,16 @@ def is_etf(security):
         "MUTUALFUND",
     ]
 
+
 def get_holdings_data(etf):
-    try:
-        fund_data = etf.funds_data
-        if hasattr(fund_data, "top_holdings") and fund_data.top_holdings is not None:
-            holdings = fund_data.top_holdings.copy()
-            holdings = holdings.reset_index()
-            holdings = holdings.rename(
-                columns={"Symbol": "Ticker", "Holding Percent": "Weight"}
-            )
+    fund_data = etf.funds_data
+    holdings = fund_data.top_holdings.copy()
+    holdings = holdings.reset_index()
+    holdings = holdings.rename(
+        columns={"Symbol": "Ticker", "Holding Percent": "Weight"}
+    )
 
-            if holdings["Weight"].sum() > 1:
-                holdings["Weight"] = holdings["Weight"] / 100
-
-            return holdings
-    except Exception as e:
-        logging.error(f"Error getting holdings: {str(e)}")
-    return pd.DataFrame()
+    return holdings
 
 
 def calculate_look_through(
