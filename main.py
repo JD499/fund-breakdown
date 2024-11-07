@@ -83,15 +83,6 @@ def get_etf_sector_breakdown(security):
     return {}
 
 
-def standardize_ticker(ticker):
-    if pd.isna(ticker):
-        return ""
-    standard = str(ticker).upper().split(".")[0]
-    replacements = {"ADR": "", "CLASS": "C", "ORDINARY": "", "SHARES": ""}
-    for old, new in replacements.items():
-        standard = standard.replace(old, new)
-    return standard.strip()
-
 
 def is_etf(security):
     return security.info.get("quoteType", "").upper() in [
@@ -231,7 +222,7 @@ def calculate_look_through(
 
 def merge_holdings(combined):
     logging.info("Merging holdings...")
-    combined["StandardTicker"] = combined["Ticker"].apply(standardize_ticker)
+    combined["StandardTicker"] = combined["Ticker"]
 
     merged = (
         combined.groupby("StandardTicker")
