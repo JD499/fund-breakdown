@@ -118,19 +118,28 @@
 
             const data = await response.json();
 
+            if (!response.ok) {
+
             if (data.error) {
                 document.getElementById('error-message').textContent = data.error;
+                const errorData = await response.json();
+
+                document.getElementById('error-message').textContent = errorData.detail;
                 document.getElementById('error-message').style.display = 'block';
             } else {
+
+                const data = await response.json();
+
                 displayHoldings(data.holdings);
                 displaySectors(data.sectors);
                 document.getElementById('results').style.display = 'grid';
             }
         } catch (error) {
-            console.error('Error:', error);
-            document.getElementById('error-message').textContent = 'An error occurred. Please try again.';
 
+            document.getElementById('error-message').textContent = 'An error occurred. Please try again.';
+            document.getElementById('error-message').style.display = 'block';
         }
+
 
         document.getElementById('loading').style.display = 'none';
     });
