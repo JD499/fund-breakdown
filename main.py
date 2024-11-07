@@ -1,5 +1,4 @@
 import logging
-from time import sleep
 from typing import Annotated
 import pandas as pd
 import yfinance as yf
@@ -172,9 +171,6 @@ def merge_holdings(combined):
     )
 
     merged = merged.sort_values("Weight", ascending=False)
-    merged["Name"] = merged.apply(
-        lambda x: f"{x['Name']} *" if x["DirectHolding"] else x["Name"], axis=1
-    )
 
     return merged
 
