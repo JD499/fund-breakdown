@@ -6,6 +6,7 @@ import yfinance as yf
 from fastapi import FastAPI, HTTPException, Form
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
+from yfinance import Ticker
 
 app = FastAPI()
 app.mount("/static", StaticFiles(directory="static"), name="static")
@@ -24,25 +25,13 @@ def remap_ticker(ticker):
     return mapped_ticker
 
 
-def get_security_info(ticker):
-    try:
-        ticker = remap_ticker(ticker)
+def get_security_info(ticker: str) -> Ticker:
+    ticker = remap_ticker(ticker)
 
-        logging.info(f"Fetching data for {ticker}...")
-        security = yf.Ticker(ticker)
+    logging.info(f"Fetching data for {ticker}...")
+    security: Ticker = yf.Ticker(ticker)
 
-        if not hasattr(security, "info") or security.info is None:
-            logging.error(f"Could not fetch info for {ticker}")
-            raise ValueError(f"Could not fetch info for {ticker}")
-
-        try:
-            fast_info = security.fast_info
-            if fast_info is None:
-                logging.error(f"{ticker} has no fast_info data")
-                raise ValueError(f"Could not fetch price data for {ticker}")
-        except Exception as e:
-            logging.error(f"Error getting fast_info for {ticker}: {str(e)}")
-            raise ValueError(f"Could not fetch price data for {ticker}")
+    fast_info = security.fast_info
 
         try:
             if pd.isna(fast_info["lastPrice"]) or fast_info["lastPrice"] == 0:
@@ -51,8 +40,21 @@ def get_security_info(ticker):
         except (KeyError, AttributeError):
             logging.error(f"Could not verify price data for {ticker}")
             raise ValueError(f"Could not verify price data for {ticker}")
+    try:
+        if fast_info["lastPrice"] == 0:
+            logging.error(f"Could not verify price data for {ticker}")
+            raise HTTPException(
+                status_code=400,
+                detail=f"Could not verify price data for {ticker}",
+            )
+    except (KeyError, AttributeError):
+        logging.error(f"Could not verify price data for {ticker}")
+        raise HTTPException(
+            status_code=400,
+            detail=f"Could not verify price data for {ticker}",
+        )
 
-        return security
+    return security
 
     except Exception as e:
         logging.error(f"Error fetching data for {ticker}: {str(e)}")
