@@ -51,17 +51,11 @@ def get_security_info(ticker: str) -> Ticker:
 
 
 def get_sector(security):
-    try:
-        sector = security.info.get("sector", "")
-        if not sector or pd.isna(sector):
-            sector = security.info.get("industry", "Unknown")
-        if not sector or pd.isna(sector):
-            logging.warning(f"No sector information found for security")
-            return "Unknown"
-        return sector
-    except:
-        logging.warning(f"Error getting sector information")
+    sector = security.info.get("sector", "")
+    if not sector or pd.isna(sector):
+        logging.warning(f"No sector information found for security")
         return "Unknown"
+    return sector
 
 
 def get_nation(security):
