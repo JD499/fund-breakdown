@@ -1,4 +1,7 @@
+import json
 import logging
+import sqlite3
+from datetime import datetime, timedelta
 from typing import Annotated, Dict, List, Optional, Union, Any
 import pandas as pd
 import yfinance as yf
@@ -8,14 +11,144 @@ from fastapi.staticfiles import StaticFiles
 from pandas import DataFrame
 from yfinance import Ticker
 
-app: FastAPI = FastAPI()
-app.mount("/static", StaticFiles(directory="static"), name="static")
+DATABASE_NAME = "securities_cache.db"
+CACHE_EXPIRY_DAYS = 1
 
 TICKER_MAPPINGS: Dict[str, str] = {
     "SMSN": "SMSN.IL",
     "00939": "0939.HK",
     "RIGD": "RIGD.IL",
 }
+
+
+class CachedTicker:
+    def __init__(self, ticker_data: Dict):
+        self.info = ticker_data["info"]
+
+        self.fast_info = ticker_data["fast_info"]
+
+        if ticker_data["funds_data"]:
+            self.funds_data = type("FundsData", (), {})()
+
+            self.funds_data.sector_weightings = ticker_data["funds_data"].get(
+                "sector_weightings"
+            )
+
+            holdings_data = ticker_data["funds_data"].get("top_holdings")
+
+            holdings_df = pd.DataFrame(holdings_data["data"])
+
+            self.funds_data.top_holdings = holdings_df
+
+
+def get_db_connection():
+    return sqlite3.connect(DATABASE_NAME)
+
+
+def init_db():
+    with get_db_connection() as conn:
+        conn.execute("""
+            CREATE TABLE IF NOT EXISTS securities (
+                ticker TEXT PRIMARY KEY,
+                info JSON,
+                fast_info JSON,
+                funds_data JSON,
+                last_updated TIMESTAMP
+            )
+        """)
+        conn.commit()
+
+
+def serialize_fast_info(fast_info: Any) -> Dict:
+    result = {}
+    for key in dir(fast_info):
+        if key.startswith("_"):
+            continue
+
+        value = getattr(fast_info, key)
+
+        if callable(value):
+            continue
+
+        result[key] = value
+
+    return result
+
+
+def is_fund(security: Ticker) -> bool:
+    return security.info.get("quoteType", "").upper() in [
+        "ETF",
+        "MUTUALFUND",
+    ]
+
+
+def serialize_funds_data(security: Ticker) -> Optional[Dict]:
+    funds_data = {"sector_weightings": security.funds_data.sector_weightings}
+
+    holdings_df = security.funds_data.top_holdings
+
+    holdings_df = holdings_df.reset_index()
+
+    column_mapping = {"Symbol": "Ticker", "Holding Percent": "Weight"}
+
+    holdings_df = holdings_df.rename(columns=column_mapping)
+
+    funds_data["top_holdings"] = {
+        "data": holdings_df.to_dict(orient="records"),
+        "columns": list(holdings_df.columns),
+    }
+
+    return funds_data
+
+
+def get_cached_security(ticker: str) -> Optional[Dict]:
+    with get_db_connection() as conn:
+        result = conn.execute(
+            """
+            SELECT info, fast_info, funds_data, last_updated 
+            FROM securities 
+            WHERE ticker = ?
+            """,
+            (ticker,),
+        ).fetchone()
+
+        if result:
+            info, fast_info, funds_data, last_updated = result
+            last_updated = datetime.fromisoformat(last_updated)
+
+            if datetime.now() - last_updated < timedelta(days=CACHE_EXPIRY_DAYS):
+                return {
+                    "info": json.loads(info),
+                    "fast_info": json.loads(fast_info),
+                    "funds_data": json.loads(funds_data) if funds_data else None,
+                }
+    return None
+
+
+def cache_security(ticker: str, security: Ticker):
+    try:
+        with get_db_connection() as conn:
+            info_data = security.info if security.info else {}
+            fast_info_data = serialize_fast_info(security.fast_info)
+            funds_data = serialize_funds_data(security) if is_fund(security) else None
+
+            conn.execute(
+                """
+                INSERT OR REPLACE INTO securities (ticker, info, fast_info, funds_data, last_updated)
+                VALUES (?, ?, ?, ?, ?)
+                """,
+                (
+                    ticker,
+                    json.dumps(info_data),
+                    json.dumps(fast_info_data),
+                    None if funds_data is None else json.dumps(funds_data),
+                    datetime.now().isoformat(),
+                ),
+            )
+            conn.commit()
+            logging.info(f"Successfully cached data for {ticker}")
+    except Exception as e:
+        logging.error(f"Error caching security data for {ticker}: {e}")
 
 
 def remap_ticker(ticker: str) -> str:
@@ -25,29 +158,33 @@ def remap_ticker(ticker: str) -> str:
     return mapped_ticker
 
 
-def get_security_info(ticker: str) -> Ticker:
+def get_security_info(ticker: str) -> CachedTicker | Ticker:
     ticker = remap_ticker(ticker)
 
-    logging.info(f"Fetching data for {ticker}...")
+    cached_data = get_cached_security(ticker)
+    if cached_data:
+        logging.info(f"Retrieved {ticker} from cache")
+        return CachedTicker(cached_data)
+
+    logging.info(f"Fetching {ticker} from yfinance...")
     security: Ticker = yf.Ticker(ticker)
 
-    fast_info: Dict[str, Any] = security.fast_info
-
     try:
-        if fast_info["lastPrice"] == 0:
+        if security.fast_info["lastPrice"] == 0:
             logging.error(f"Could not verify price data for {ticker}")
             raise HTTPException(
                 status_code=400,
                 detail=f"Could not verify price data for {ticker}",
             )
+        cache_security(ticker, security)
+        return security
+
     except (KeyError, AttributeError):
         logging.error(f"Could not verify price data for {ticker}")
         raise HTTPException(
             status_code=400,
             detail=f"Could not verify price data for {ticker}",
         )
-
-    return security
 
 
 def get_sector(security: Ticker) -> str:
@@ -74,13 +211,6 @@ def get_etf_sector_breakdown(security: Ticker) -> Optional[Dict[str, float]]:
     return None
 
 
-def is_etf(security: Ticker) -> bool:
-    return security.info.get("quoteType", "").upper() in [
-        "ETF",
-        "MUTUALFUND",
-    ]
-
-
 def get_holdings_data(etf: Ticker) -> DataFrame:
     fund_data: Any = etf.funds_data
     holdings: DataFrame = fund_data.top_holdings.copy()
@@ -98,7 +228,7 @@ def calculate_look_through(
 ) -> DataFrame:
     security: Ticker = get_security_info(ticker)
 
-    security_type: str = "ETF" if is_etf(security) else "Stock"
+    security_type: str = "ETF" if is_fund(security) else "Stock"
     security_name: str = security.info.get("longName", ticker)
     sector: str = get_sector(security) if security_type == "Stock" else "ETF"
     nation: str = get_nation(security)
@@ -188,7 +318,7 @@ def calculate_portfolio_sector_breakdown(
         if security is None:
             continue
 
-        if is_etf(security):
+        if is_fund(security):
             etf_sectors: Optional[Dict[str, float]] = get_etf_sector_breakdown(security)
             if etf_sectors:
                 for sector, sector_weight in etf_sectors.items():
@@ -233,6 +363,11 @@ def build_portfolio(ticker: List[str], weight: List[str]) -> Dict[str, float]:
 
     logging.info("Portfolio built successfully")
     return portfolio
+
+
+app: FastAPI = FastAPI()
+app.mount("/static", StaticFiles(directory="static"), name="static")
+init_db()
 
 
 @app.get("/", response_class=FileResponse)

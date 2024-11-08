@@ -6,3 +6,4 @@
 /portfolio_analyzer.log
 /.venv/
 /.idea/
+/securities_cache.db
