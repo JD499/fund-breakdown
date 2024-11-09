@@ -108,7 +108,7 @@ function displayHoldings(holdings) {
 async function loadChartJS() {
     return new Promise((resolve, reject) => {
         const script = document.createElement('script');
-        script.src = 'https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.7.0/chart.min.js';
+        script.src = 'https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js';
         script.onload = resolve;
         script.onerror = reject;
         document.body.appendChild(script);
