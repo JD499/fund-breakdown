@@ -3,9 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <title>Portfolio Breakdown Analysis</title>
-    <meta name="description"
-          content="Portfolio Analysis Tool - Analyze your investment portfolio's composition and sector distribution. Get detailed breakdowns of holdings and sector allocations based on market data.">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta content="Portfolio Analysis Tool - Analyze your investment portfolio's composition and sector distribution. Get detailed breakdowns of holdings and sector allocations based on market data."
+          name="description">
+    <meta content="width=device-width, initial-scale=1.0" name="viewport">
 
     <meta content="website" property="og:type">
     <meta content="https://portfoliobreakdown.com/" property="og:url">
@@ -14,14 +14,14 @@
           property="og:description">
 
 
-    <link rel="icon" type="image/png" href="/static/favicon-96x96.png" sizes="96x96"/>
-    <link rel="icon" type="image/svg+xml" href="/static/favicon.svg"/>
-    <link rel="shortcut icon" href="/static/favicon.ico"/>
-    <link rel="apple-touch-icon" sizes="180x180" href="/static/apple-touch-icon.png"/>
-    <link rel="manifest" href="/static/site.webmanifest"/>
+    <link href="/static/favicon-96x96.png" rel="icon" sizes="96x96" type="image/png"/>
+    <link href="/static/favicon.svg" rel="icon" type="image/svg+xml"/>
+    <link href="/static/favicon.ico" rel="shortcut icon"/>
+    <link href="/static/apple-touch-icon.png" rel="apple-touch-icon" sizes="180x180"/>
+    <link href="/static/site.webmanifest" rel="manifest"/>
 
 
-    <link rel="stylesheet" href="/static/styles.css">
+    <link href="/static/styles.css" rel="stylesheet">
 </head>
 
 <body>
@@ -33,243 +33,61 @@
     </div>
 </header>
 <main class="container">
-    <form id="portfolio-form" method="post" action="/analyze">
+    <form action="/analyze" id="portfolio-form" method="post">
         <section class="portfolio-input">
             <table>
                 <thead>
                 <tr>
                     <th scope="col">Security Ticker</th>
                     <th scope="col">Weight (%)</th>
-                    <th scope="col" aria-label="Actions"></th>
+                    <th aria-label="Actions" scope="col"></th>
                 </tr>
                 </thead>
                 <tbody id="security-inputs">
                 <tr>
-                    <td><input type="text" aria-label="Security Ticker" name="ticker" placeholder="SPY" required></td>
-                    <td><input type="number" aria-label="Weight Percentage" name="weight" min="0" max="100"
-                               step="0.01" placeholder="100" required></td>
+                    <td><input aria-label="Security Ticker" name="ticker" placeholder="SPY" required type="text"></td>
+                    <td><input aria-label="Weight Percentage" max="100" min="0" name="weight" placeholder="100"
+                               required step="0.01" type="number"></td>
                     <td>
-                        <button type="button" class="remove-security" aria-label="Remove Security">×</button>
+                        <button aria-label="Remove Security" class="remove-security" type="button">×</button>
                     </td>
                 </tr>
                 </tbody>
             </table>
             <div class="button-group">
-                <button type="button" id="add-security" aria-label="Add New Security">+ Add Security</button>
-                <button type="submit" id="analyze" aria-label="Analyze Portfolio">▶ Analyze</button>
+                <button aria-label="Add New Security" id="add-security" type="button">+ Add Security</button>
+                <button aria-label="Analyze Portfolio" id="analyze" type="submit">▶ Analyze</button>
             </div>
         </section>
     </form>
-    <div id="error-message" class="error-message" role="alert" style="display: none;"></div>
-    <div id="loading" class="loading" role="status" style="display: none;">Analyzing portfolio...</div>
-    <section id="results" class="results-grid" style="display: none;">
+    <div class="error-message" id="error-message" role="alert" style="display: none;"></div>
+    <div class="loading" id="loading" role="status" style="display: none;">Analyzing portfolio...</div>
+    <section class="results-grid" id="results" style="display: none;">
         <div class="results-card">
             <h2>Holdings Breakdown</h2>
-            <div id="holdings-table" tabindex="0" aria-label="Holdings Breakdown Table"></div>
+            <div aria-label="Holdings Breakdown Table" id="holdings-table" tabindex="0"></div>
         </div>
 
         <div class="results-card">
             <h2>Sector Distribution</h2>
-            <div id="chart-container" role="img" aria-label="Sector Distribution Chart"></div>
+            <div aria-label="Sector Distribution Chart" id="chart-container" role="img"></div>
         </div>
     </section>
 </main>
-<script>
-    let securityCount = 1;
-
-    function initializeFormHandlers() {
-        document.getElementById('add-security').addEventListener('click', addSecurityRow);
-        document.getElementById('security-inputs').addEventListener('click', handleSecurityRemoval);
-        document.getElementById('portfolio-form').addEventListener('submit', handleFormSubmit);
-    }
-
-    function addSecurityRow() {
-        securityCount++;
-        const newRow = `
-            <tr>
-                <td><input type="text"
-                           aria-label="Security Ticker ${securityCount}"
-                           name="ticker"
-                           placeholder="SPY"
-                           required></td>
-                <td><input type="number"
-                           aria-label="Weight Percentage ${securityCount}"
-                           name="weight"
-                           min="0"
-                           max="100"
-                           step="0.01"
-                           placeholder="100"
-                           required></td>
-                <td><button type="button"
-                            class="remove-security"
-                            aria-label="Remove Security ${securityCount}">×</button></td>
-            </tr>
-        `;
-        document.getElementById('security-inputs').insertAdjacentHTML('beforeend', newRow);
-    }
-
-    function handleSecurityRemoval(event) {
-        if (event.target.className === 'remove-security') {
-            event.target.parentNode.parentNode.remove();
-        }
-    }
-
-    async function handleFormSubmit(event) {
-        event.preventDefault();
-
-        const errorElement = document.getElementById('error-message');
-        const loadingElement = document.getElementById('loading');
-        const resultsElement = document.getElementById('results');
-
-        errorElement.style.display = 'none';
-        loadingElement.style.display = 'block';
-        resultsElement.style.display = 'none';
-
-        try {
-            const response = await fetch('/analyze', {
-                method: 'POST',
-                body: new FormData(event.target)
-            });
-
-            if (!response.ok) {
-                const errorData = await response.json();
-                errorElement.textContent = errorData.detail;
-                errorElement.style.display = 'block';
-            } else {
-                const data = await response.json();
-                displayHoldings(data.holdings);
-
-
-                if (!window.Chart) {
-                    await loadChartJS();
-                }
-                displaySectors(data.sectors);
-                resultsElement.style.display = 'grid';
-            }
-        } catch (error) {
-            errorElement.textContent = 'An error occurred. Please try again.';
-            errorElement.style.display = 'block';
-        }
-
-        loadingElement.style.display = 'none';
-    }
-
-    function displayHoldings(holdings) {
-        document.getElementById('holdings-table').innerHTML = `
-            <table aria-label="Portfolio Holdings">
-                <thead>
-                    <tr>
-                        <th scope="col">Name</th>
-                        <th scope="col">Ticker</th>
-                        <th scope="col">Sector</th>
-                        <th scope="col">Nation</th>
-                        <th scope="col">Weight</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    ${holdings.map(holding => `
-                        <tr>
-                            <td>${holding.Name}</td>
-                            <td>${holding.Ticker}</td>
-                            <td>${holding.Sector}</td>
-                            <td>${holding.Nation}</td>
-                            <td aria-label="Weight ${holding.Weight.toFixed(2)} percent">
-                                ${holding.Weight.toFixed(2)}%
-                            </td>
-                        </tr>
-                    `).join('')}
-                </tbody>
-            </table>
-        `;
-    }
-
-    async function loadChartJS() {
-        return new Promise((resolve, reject) => {
-            const script = document.createElement('script');
-            script.src = 'https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.7.0/chart.min.js';
-            script.onload = resolve;
-            script.onerror = reject;
-            document.body.appendChild(script);
-        });
-    }
-
-    let chart = null;
-    function displaySectors(sectors) {
-        const sectorData = Object.entries(sectors).map(([sector, weight]) => ({
-            sector,
-            weight: weight.toFixed(2)
-        }));
-
-        const ctx = document.createElement('canvas');
-        ctx.id = 'sectorChart';
-        ctx.setAttribute('role', 'img');
-        ctx.setAttribute('aria-label', 'Sector Distribution Chart');
-
-        const container = document.getElementById('chart-container');
-        container.innerHTML = '';
-        container.appendChild(ctx);
-
-        if (chart) {
-            chart.destroy();
-        }
-
-        Chart.defaults.font.family = 'Berkeley Mono';
-        chart = new Chart(ctx, {
-            type: 'pie',
-            data: {
-                labels: sectorData.map(data => data.sector),
-                datasets: [{
-                    data: sectorData.map(data => data.weight),
-                    backgroundColor: [
-                        '#0366d6', '#28a745', '#6f42c1', '#f6a580', '#d79922',
-                        '#959da5', '#586069', '#2188ff', '#34d058', '#8a63d2', '#f08080'
-                    ]
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: {
-                        position: window.innerWidth < 768 ? 'bottom' : 'right',
-                        labels: {
-                            font: {
-                                size: window.innerWidth < 768 ? 10 : 12
-                            },
-                            boxWidth: window.innerWidth < 768 ? 12 : 16,
-                            padding: window.innerWidth < 768 ? 10 : 15
-                        }
-                    },
-                    tooltip: {
-                        callbacks: {
-                            label: function (context) {
-                                const label = context.label || '';
-                                const value = context.parsed || 0;
-                                return `${label}: ${value.toFixed(2)}%`;
-                            }
-                        }
-                    }
-                }
-            }
-        });
-    }
-
-
-    initializeFormHandlers();
-</script>
 <footer class="footer">
     <div class="container footer-content">
         <div class="social-links">
-            <a href="https://github.com/JD499" class="social-link" target="_blank">
-                <img src="/static/github-mark.svg" width="24" height="24" class="social-icon" alt="GitHub Logo"/>
+            <a class="social-link" href="https://github.com/JD499" target="_blank">
+                <img alt="GitHub Logo" class="social-icon" height="24" src="/static/github-mark.svg" width="24"/>
                 Personal GitHub
             </a>
-            <a href="https://github.com/JD499/fund-breakdown" class="social-link" target="_blank">
-                <img src="/static/github-mark.svg" width="24" height="24" class="social-icon" alt="GitHub Logo"/>
+            <a class="social-link" href="https://github.com/JD499/fund-breakdown" target="_blank">
+                <img alt="GitHub Logo" class="social-icon" height="24" src="/static/github-mark.svg" width="24"/>
                 Project GitHub
             </a>
         </div>
     </div>
 </footer>
+<script src="/static/index.js"></script>
 </body>
 </html>
