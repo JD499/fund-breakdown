@@ -12,7 +12,6 @@
           content="Portfolio Analysis Tool - Analyze your investment portfolio's composition and sector distribution. Get detailed breakdowns of holdings and sector allocations based on market data.">
     <title>Portfolio Breakdown Analysis</title>
     <link rel="stylesheet" href="/static/styles.css">
-    <script defer src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.7.0/chart.min.js"></script>
     <!-- Google tag (gtag.js) -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=AW-16764881834">
     </script>
@@ -81,108 +80,124 @@
 </main>
 <script>
     let securityCount = 1;
-    let chart = null;
 
-    document.getElementById('add-security').addEventListener('click', function () {
+    function initializeFormHandlers() {
+        document.getElementById('add-security').addEventListener('click', addSecurityRow);
+        document.getElementById('security-inputs').addEventListener('click', handleSecurityRemoval);
+        document.getElementById('portfolio-form').addEventListener('submit', handleFormSubmit);
+    }
+
+    function addSecurityRow() {
         securityCount++;
         const newRow = `
-        <tr>
-            <td><input type="text"
-                       aria-label="Security Ticker ${securityCount}"
-                       name="ticker"
-                       placeholder="SPY"
-                       required></td>
-            <td><input type="number"
-                       aria-label="Weight Percentage ${securityCount}"
-                       name="weight"
-                       min="0"
-                       max="100"
-                       step="0.01"
-                       placeholder="100"
-                       required></td>
-            <td><button type="button"
-                        class="remove-security"
-                        aria-label="Remove Security ${securityCount}">×</button></td>
-        </tr>
-    `;
+            <tr>
+                <td><input type="text"
+                           aria-label="Security Ticker ${securityCount}"
+                           name="ticker"
+                           placeholder="SPY"
+                           required></td>
+                <td><input type="number"
+                           aria-label="Weight Percentage ${securityCount}"
+                           name="weight"
+                           min="0"
+                           max="100"
+                           step="0.01"
+                           placeholder="100"
+                           required></td>
+                <td><button type="button"
+                            class="remove-security"
+                            aria-label="Remove Security ${securityCount}">×</button></td>
+            </tr>
+        `;
         document.getElementById('security-inputs').insertAdjacentHTML('beforeend', newRow);
-    });
+    }
 
-    document.getElementById('security-inputs').addEventListener('click', function (event) {
+    function handleSecurityRemoval(event) {
         if (event.target.className === 'remove-security') {
             event.target.parentNode.parentNode.remove();
         }
-    });
+    }
 
-    document.getElementById('portfolio-form').addEventListener('submit', async function (event) {
+    async function handleFormSubmit(event) {
         event.preventDefault();
 
-        document.getElementById('error-message').style.display = 'none';
-        document.getElementById('loading').style.display = 'block';
-        document.getElementById('results').style.display = 'none';
+        const errorElement = document.getElementById('error-message');
+        const loadingElement = document.getElementById('loading');
+        const resultsElement = document.getElementById('results');
 
-        const form = event.target;
-        const formData = new FormData(form);
+        errorElement.style.display = 'none';
+        loadingElement.style.display = 'block';
+        resultsElement.style.display = 'none';
 
         try {
             const response = await fetch('/analyze', {
                 method: 'POST',
-                body: formData
+                body: new FormData(event.target)
             });
 
             if (!response.ok) {
-
                 const errorData = await response.json();
-
-                document.getElementById('error-message').textContent = errorData.detail;
-                document.getElementById('error-message').style.display = 'block';
+                errorElement.textContent = errorData.detail;
+                errorElement.style.display = 'block';
             } else {
-
                 const data = await response.json();
-
                 displayHoldings(data.holdings);
+
+
+                if (!window.Chart) {
+                    await loadChartJS();
+                }
                 displaySectors(data.sectors);
-                document.getElementById('results').style.display = 'grid';
+                resultsElement.style.display = 'grid';
             }
         } catch (error) {
-
-            document.getElementById('error-message').textContent = 'An error occurred. Please try again.';
-            document.getElementById('error-message').style.display = 'block';
+            errorElement.textContent = 'An error occurred. Please try again.';
+            errorElement.style.display = 'block';
         }
 
-
-        document.getElementById('loading').style.display = 'none';
-    });
+        loadingElement.style.display = 'none';
+    }
 
     function displayHoldings(holdings) {
         document.getElementById('holdings-table').innerHTML = `
-        <table aria-label="Portfolio Holdings">
-            <thead>
-                <tr>
-                    <th scope="col">Name</th>
-                    <th scope="col">Ticker</th>
-                    <th scope="col">Sector</th>
-                    <th scope="col">Nation</th>
-                    <th scope="col">Weight</th>
-                </tr>
-            </thead>
-            <tbody>
-                ${holdings.map(holding => `
+            <table aria-label="Portfolio Holdings">
+                <thead>
                     <tr>
-                        <td>${holding.Name}</td>
-                        <td>${holding.Ticker}</td>
-                        <td>${holding.Sector}</td>
-                        <td>${holding.Nation}</td>
-                        <td aria-label="Weight ${holding.Weight.toFixed(2)} percent">
-                            ${holding.Weight.toFixed(2)}%
-                        </td>
+                        <th scope="col">Name</th>
+                        <th scope="col">Ticker</th>
+                        <th scope="col">Sector</th>
+                        <th scope="col">Nation</th>
+                        <th scope="col">Weight</th>
                     </tr>
-                `).join('')}
-            </tbody>
-        </table>
-    `;
+                </thead>
+                <tbody>
+                    ${holdings.map(holding => `
+                        <tr>
+                            <td>${holding.Name}</td>
+                            <td>${holding.Ticker}</td>
+                            <td>${holding.Sector}</td>
+                            <td>${holding.Nation}</td>
+                            <td aria-label="Weight ${holding.Weight.toFixed(2)} percent">
+                                ${holding.Weight.toFixed(2)}%
+                            </td>
+                        </tr>
+                    `).join('')}
+                </tbody>
+            </table>
+        `;
     }
 
+    async function loadChartJS() {
+        return new Promise((resolve, reject) => {
+            const script = document.createElement('script');
+            script.src = 'https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.7.0/chart.min.js';
+            script.onload = resolve;
+            script.onerror = reject;
+            document.body.appendChild(script);
+        });
+    }
+
+    let chart = null;
     function displaySectors(sectors) {
         const sectorData = Object.entries(sectors).map(([sector, weight]) => ({
             sector,
@@ -243,6 +258,8 @@
         });
     }
 
+
+    initializeFormHandlers();
 </script>
 <footer class="footer">
     <div class="container footer-content">
@@ -251,12 +268,10 @@
                 <img src="/static/github-mark.svg" width="24" height="24" class="social-icon" alt="GitHub Logo"/>
                 Personal GitHub
             </a>
-
             <a href="https://github.com/JD499/fund-breakdown" class="social-link" target="_blank">
                 <img src="/static/github-mark.svg" width="24" height="24" class="social-icon" alt="GitHub Logo"/>
                 Project GitHub
             </a>
-
         </div>
     </div>
 </footer>
