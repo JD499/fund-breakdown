@@ -1,0 +1,13 @@
+{% for row in rows %}
+<tr>
+    <td><input aria-label="Security Ticker" name="ticker" placeholder="SPY" type="text" value="{{ row.ticker }}"></td>
+    <td><input aria-label="Weight Percentage" max="100" min="0" name="weight" placeholder="100" step="0.01"
+            type="number" value="{{ row.weight }}"></td>
+    <td>
+        {% if not loop.first %}
+        <button aria-label="Remove Security" class="remove-security" type="submit"
+            formaction="/remove-row/{{ loop.index0 }}">×</button>
+        {% endif %}
+    </td>
+</tr>
+{% endfor %}

@@ -2,14 +2,15 @@ import json
 import logging
 import sqlite3
 from datetime import datetime, timedelta
-from typing import Annotated, Dict, List, Optional, Union, Any
+from typing import Annotated, Dict, List, Optional, Any
 import pandas as pd
 import yfinance as yf
-from fastapi import FastAPI, HTTPException, Form
-from fastapi.responses import FileResponse
+from fastapi import FastAPI, HTTPException, Form, Request
+from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
 from pandas import DataFrame
 from yfinance import Ticker
+from fastapi.templating import Jinja2Templates
 
 DATABASE_NAME = "securities_cache.db"
 CACHE_EXPIRY_DAYS = 1
@@ -367,34 +368,110 @@ def build_portfolio(ticker: List[str], weight: List[str]) -> Dict[str, float]:
 
 app: FastAPI = FastAPI()
 app.mount("/static", StaticFiles(directory="static"), name="static")
+templates = Jinja2Templates(directory="templates")
 init_db()
 
 
-@app.get("/", response_class=FileResponse)
-def home() -> Any:
-    logging.info("Serving home page")
-    return "index.html"
+class PortfolioRow:
+    def __init__(self, ticker: str = "", weight: float = None):
+        self.ticker = ticker
+        self.weight = weight
+
+
+@app.get("/", response_class=HTMLResponse)
+async def home(request: Request):
+    rows = [PortfolioRow()]
+    return templates.TemplateResponse("index.html", {"request": request, "rows": rows})
+
+
+@app.post("/add-row")
+async def add_row(request: Request):
+
+    form_data = await request.form()
+    print(form_data)
+    existing_tickers = form_data.getlist("ticker")
+    existing_weights = form_data.getlist("weight")
+
+
+    rows = []
+    for t, w in zip(existing_tickers, existing_weights):
+        try:
+            weight = float(w) if w.strip() else None
+            rows.append(PortfolioRow(t, weight))
+        except ValueError:
+
+            rows.append(PortfolioRow(t, None))
+
+    rows.append(PortfolioRow())
+
+    return templates.TemplateResponse(
+        "partials/tbody.html", {"request": request, "rows": rows}
+    )
+
+
+@app.post("/remove-row/{index}")
+async def remove_row(request: Request, index: int):
+    form_data = await request.form()
+    existing_tickers = form_data.getlist("ticker")
+    existing_weights = form_data.getlist("weight")
+
+
+    if 0 <= index < len(existing_tickers):
+        existing_tickers.pop(index)
+        existing_weights.pop(index)
+
+    rows = []
+    for t, w in zip(existing_tickers, existing_weights):
+        try:
+            weight = float(w) if w.strip() else None
+            rows.append(PortfolioRow(t, weight))
+        except ValueError:
+
+            rows.append(PortfolioRow(t, None))
+
+    if not rows:
+        rows = [PortfolioRow()]
+
+    return templates.TemplateResponse(
+        "partials/tbody.html", {"request": request, "rows": rows}
+    )
 
 
 @app.post("/analyze")
 async def analyze(
-    ticker: Annotated[List[str], Form()], weight: Annotated[List[str], Form()]
-) -> Dict[str, Union[List[Dict[str, Any]], Dict[str, float]]]:
-    logging.info("Processing analysis request")
+    request: Request,
+    ticker: Annotated[List[str], Form()],
+    weight: Annotated[List[float], Form()],
+):
 
-    portfolio: Dict[str, float] = build_portfolio(ticker, weight)
+    try:
+        portfolio: Dict[str, float] = build_portfolio(ticker, weight)
 
-    all_holdings: List[DataFrame] = []
-    for ticker, weight in portfolio.items():
-        holdings: DataFrame = calculate_look_through(ticker, weight)
-        if not holdings.empty:
-            all_holdings.append(holdings)
 
-    combined: DataFrame = pd.concat(all_holdings, ignore_index=True)
-    merged: DataFrame = merge_holdings(combined)
-    holdings_data: List[Dict[str, Any]] = merged.head(50).to_dict(orient="records")
+        all_holdings: List[DataFrame] = []
+        for ticker, weight in portfolio.items():
+            holdings: DataFrame = calculate_look_through(ticker, weight)
+            if not holdings.empty:
+                all_holdings.append(holdings)
 
-    sector_breakdown: Dict[str, float] = calculate_portfolio_sector_breakdown(portfolio)
+        combined: DataFrame = pd.concat(all_holdings, ignore_index=True)
+        merged: DataFrame = merge_holdings(combined)
+        holdings_data: List[Dict[str, Any]] = merged.head(50).to_dict(orient="records")
 
-    logging.info("Analysis complete")
-    return {"holdings": holdings_data, "sectors": sector_breakdown}
+
+        sector_breakdown: Dict[str, float] = calculate_portfolio_sector_breakdown(
+            portfolio
+        )
+
+
+        return templates.TemplateResponse(
+            "partials/analysis_results.html",
+            {
+                "request": request,
+                "holdings": holdings_data,
+                "sectors": sector_breakdown,
+            },
+        )
+    except Exception as e:
+        print("Error in analyze:", str(e))
+        raise

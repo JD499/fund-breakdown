@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Portfolio Breakdown Analysis</title>
+    <meta
+        content="Portfolio Analysis Tool - Analyze your investment portfolio's composition and sector distribution. Get detailed breakdowns of holdings and sector allocations based on market data."
+        name="description">
+    <meta content="width=device-width, initial-scale=1.0" name="viewport">
+
+    <meta content="website" property="og:type">
+    <meta content="https://portfoliobreakdown.com/" property="og:url">
+    <meta content="Portfolio Breakdown Analysis" property="og:title">
+    <meta
+        content="Portfolio Analysis Tool - Analyze your investment portfolio's composition and sector distribution. Get detailed breakdowns of holdings and sector allocations based on market data."
+        property="og:description">
+
+    <link href="/static/favicon-96x96.png" rel="icon" sizes="96x96" type="image/png" />
+    <link href="/static/favicon.svg" rel="icon" type="image/svg+xml" />
+    <link href="/static/favicon.ico" rel="shortcut icon" />
+    <link href="/static/apple-touch-icon.png" rel="apple-touch-icon" sizes="180x180" />
+    <link href="/static/site.webmanifest" rel="manifest" />
+
+    <link href="/static/styles.css" rel="stylesheet">
+</head>
+
+<body>
+    <header>
+        <div class="container">
+            <h1>Portfolio Breakdown</h1>
+            <p>Analyze your portfolio composition and sector distribution.</p>
+            <p class="note">(Based on yfinance top holdings, not complete holdings)</p>
+        </div>
+    </header>
+    <main class="container">
+        <form method="post" id="portfolio-form">
+            <section class="portfolio-input">
+                <table>
+                    <thead>
+                        <tr>
+                            <th scope="col">Security Ticker</th>
+                            <th scope="col">Weight (%)</th>
+                            <th aria-label="Actions" scope="col"></th>
+                        </tr>
+                    </thead>
+                    <tbody id="security-inputs">
+                        <tr>
+                            <td><input aria-label="Security Ticker" name="ticker" placeholder="SPY" type="text"
+                                    value=""></td>
+                            <td><input aria-label="Weight Percentage" max="100" min="0" name="weight" placeholder="100"
+                                    step="0.01" type="number" value=""></td>
+                            <td>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+                <div class="button-group">
+                    <button aria-label="Add New Security" type="submit" formaction="/add-row">+ Add Security</button>
+                    <button aria-label="Analyze Portfolio" type="submit" formaction="/analyze">▶ Analyze</button>
+                </div>
+            </section>
+        </form>
+        <div class="error-message" id="error-message" role="alert" style="display: none;"></div>
+        <div class="loading" id="loading" role="status" style="display: none;">Analyzing portfolio...</div>
+        <section class="results-grid" id="results" style="display: none;">
+            <div class="results-card">
+                <h2>Holdings Breakdown</h2>
+                <div aria-label="Holdings Breakdown Table" id="holdings-table" tabindex="0"></div>
+            </div>
+
+            <div class="results-card">
+                <h2>Sector Distribution</h2>
+                <div aria-label="Sector Distribution Chart" id="chart-container" role="img"></div>
+            </div>
+        </section>
+    </main>
+    <footer class="footer">
+        <div class="container footer-content">
+            <div class="social-links">
+                <a class="social-link" href="https://github.com/JD499/fund-breakdown" target="_blank">
+                    <img alt="GitHub Logo" class="social-icon" height="24" src="/static/github.svg" width="24" />
+                    Project GitHub
+                </a>
+            </div>
+        </div>
+    </footer>
+    <script src="/static/portfolio.js"></script>
+</body>
+
+</html>

@@ -1,0 +1,45 @@
+<div class="results-card">
+    <h2>Holdings Breakdown</h2>
+    <div aria-label="Holdings Breakdown Table" id="holdings-table" tabindex="0">
+        <table aria-label="Portfolio Holdings">
+            <thead>
+                <tr>
+                    <th scope="col">Name</th>
+                    <th scope="col">Ticker</th>
+                    <th scope="col">Sector</th>
+                    <th scope="col">Nation</th>
+                    <th scope="col">Weight</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for holding in holdings %}
+                <tr>
+                    <td>{{ holding.Name }}</td>
+                    <td>{{ holding.Ticker }}</td>
+                    <td>{{ holding.Sector }}</td>
+                    <td>{{ holding.Nation }}</td>
+                    <td aria-label="Weight {{ '%.2f'|format(holding.Weight) }} percent">
+                        {{ "%.2f"|format(holding.Weight) }}%
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div class="results-card">
+    <h2>Sector Distribution</h2>
+    <div aria-label="Sector Distribution Chart" id="chart-container" role="img">
+        <table id="sector-table" style="display: none;">
+            <tbody>
+                {% for sector, weight in sectors.items() %}
+                <tr>
+                    <td>{{ sector }}</td>
+                    <td>{{ weight }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>

@@ -1,9 +1,18 @@
+# Python-generated files
+__pycache__/
+*.py[oc]
+build/
+dist/
+wheels/
+*.egg-info
+
+# Virtual environments
+.venv
+
 /static/BerkeleyMono-Bold.woff
 /static/BerkeleyMono-Bold.woff2
 /static/BerkeleyMono-Regular.woff
 /static/BerkeleyMono-Regular.woff2
 /portfolio-breakdown.tar
 /portfolio_analyzer.log
-/.venv/
-/.idea/
 /securities_cache.db

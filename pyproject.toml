@@ -1,0 +1,16 @@
+[project]
+name = "portfolio-breakdown"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.13"
+dependencies = [
+    "fastapi[standard]>=0.115.6",
+    "pandas>=2.2.3",
+    "yfinance>=0.2.50",
+]
+
+[dependency-groups]
+dev = [
+    "ruff>=0.8.4",
+]
