@@ -1,10 +1,11 @@
 document
 	.getElementById("portfolio-form")
 	.addEventListener("submit", async function (e) {
+		const submitter = e.submitter;
+
 		e.preventDefault();
 
-		const clickedButton = document.activeElement;
-		const action = clickedButton.getAttribute("formaction");
+		const action = submitter.getAttribute("formaction");
 
 		if (action === "/analyze") {
 			const formData = new FormData(this);
@@ -25,7 +26,6 @@ document
 
 				if (!response.ok) {
 					const errorText = await response.text();
-
 					errorElement.textContent = "Analysis failed. Please try again.";
 					errorElement.style.display = "block";
 				} else {
@@ -56,10 +56,9 @@ document
 				errorMessage.style.display = "block";
 				document.getElementById("loading").style.display = "none";
 			}
-			return;
+		} else {
+			await updateTable(action);
 		}
-
-		await updateTable(action);
 	});
 
 async function updateTable(action) {
@@ -73,11 +72,12 @@ async function updateTable(action) {
 		});
 
 		if (!response.ok) {
+			const errorText = await response.text();
+
 			throw new Error(`HTTP error! status: ${response.status}`);
 		}
 
 		const html = await response.text();
-
 		document.getElementById("security-inputs").innerHTML = html;
 	} catch (error) {
 		const errorMessage = document.getElementById("error-message");

@@ -1,15 +1,13 @@
 FROM python:3.13.1-slim
 
+RUN apt-get update && apt-get install -y sqlite3
+
 COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /bin/
 
 WORKDIR /app
-
 COPY . .
 
-
-RUN python -m venv .venv && \
-    . .venv/bin/activate && \
-    uv sync --frozen --no-cache
+RUN uv sync --frozen --no-cache
 
 
 EXPOSE 8000
