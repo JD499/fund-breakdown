@@ -46,7 +46,7 @@ document
 					});
 
 					displaySectors(sectorData);
-					resultsElement.style.display = "grid";
+					resultsElement.style.display = "block";
 				}
 
 				loadingElement.style.display = "none";

@@ -26,65 +26,65 @@
 </head>
 
 <body>
-    <header>
-        <div class="container">
-            <h1>Portfolio Breakdown</h1>
-            <p>Analyze your portfolio composition and sector distribution.</p>
-            <p class="note">(Based on yfinance top holdings, not complete holdings)</p>
-        </div>
-    </header>
-    <main class="container">
-        <form method="post" id="portfolio-form">
-            <section class="portfolio-input">
-                <table>
-                    <thead>
-                        <tr>
-                            <th scope="col">Security Ticker</th>
-                            <th scope="col">Weight (%)</th>
-                            <th aria-label="Actions" scope="col"></th>
-                        </tr>
-                    </thead>
-                    <tbody id="security-inputs">
-                        <tr>
-                            <td><input aria-label="Security Ticker" name="ticker" placeholder="SPY" type="text"
-                                    value=""></td>
-                            <td><input aria-label="Weight Percentage" max="100" min="0" name="weight" placeholder="100"
-                                    step="0.01" type="number" value=""></td>
-                            <td>
-                            </td>
-                        </tr>
-                    </tbody>
-                </table>
-                <div class="button-group">
-                    <button aria-label="Add New Security" type="submit" formaction="/add-row">+ Add Security</button>
-                    <button aria-label="Analyze Portfolio" type="submit" formaction="/analyze">▶ Analyze</button>
-                </div>
-            </section>
-        </form>
-        <div class="error-message" id="error-message" role="alert" style="display: none;"></div>
-        <div class="loading" id="loading" role="status" style="display: none;">Analyzing portfolio...</div>
-        <section class="results-grid" id="results" style="display: none;">
-            <div class="results-card">
-                <h2>Holdings Breakdown</h2>
-                <div aria-label="Holdings Breakdown Table" id="holdings-table" tabindex="0"></div>
-            </div>
 
-            <div class="results-card">
-                <h2>Sector Distribution</h2>
-                <div aria-label="Sector Distribution Chart" id="chart-container" role="img"></div>
+    <h1>Portfolio Breakdown</h1>
+    <p>Analyze your portfolio composition and sector distribution.</p>
+    <p class="note">(Based on yfinance top holdings, not complete holdings)</p>
+
+
+    <form method="post" id="portfolio-form">
+        <section class="portfolio-input">
+            <table>
+                <thead>
+                    <tr>
+                        <th scope="col">Security Ticker</th>
+                        <th scope="col">Weight (%)</th>
+                        <th aria-label="Actions" scope="col"></th>
+                    </tr>
+                </thead>
+                <tbody id="security-inputs">
+                    <tr>
+                        <td><input aria-label="Security Ticker" name="ticker" placeholder="SPY" type="text"></td>
+                        <td><input aria-label="Weight Percentage" max="100" min="0" name="weight" placeholder="100"
+                                step="0.01" type="number"></td>
+                        <td></td>
+                    </tr>
+                </tbody>
+            </table>
+            <div class="button-group">
+                <button aria-label="Add New Security" type="submit" formaction="/add-row">+ Add Security</button>
+                <button aria-label="Analyze Portfolio" type="submit" formaction="/analyze">▶ Analyze</button>
             </div>
         </section>
-    </main>
+    </form>
+
+    <div class="error-message" id="error-message" role="alert" style="display: none;"></div>
+    <div class="loading" id="loading" role="status" style="display: none;">Analyzing portfolio...</div>
+
+    <div class="results-grid" id="results" style="display: none;">
+        <div class="results-card">
+            <h2>Holdings Breakdown</h2>
+            <div id="holdings-table"></div>
+            <h2>Sector Distribution</h2>
+            <div id="chart-container" role="img"></div>
+        </div>
+    </div>
+
     <footer class="footer">
-        <div class="container footer-content">
-            <div class="social-links">
-                <a class="social-link" href="https://github.com/JD499/fund-breakdown" target="_blank">
-                    <img alt="GitHub Logo" class="social-icon" height="24" src="/static/github.svg" width="24" />
-                    Project GitHub
-                </a>
-            </div>
+        <div class="social-links">
+            <a class="social-link" href="https://github.com/JD499/fund-breakdown" target="_blank">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+                    stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                    class="feather feather-github">
+                    <path
+                        d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22">
+                    </path>
+                </svg>
+                Project GitHub
+            </a>
         </div>
     </footer>
+
     <script src="/static/portfolio.js"></script>
 </body>
 
